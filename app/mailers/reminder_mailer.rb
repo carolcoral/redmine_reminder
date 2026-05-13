@@ -1,4 +1,6 @@
-class ReminderMailer < ApplicationMailer
+class ReminderMailer < ActionMailer::Base
+  layout nil
+
   def send_reminder_email(user, tasks, template)
     @user = user
     @tasks = tasks
