@@ -1,5 +1,3 @@
-require 'redmine_extensions'
-
 Redmine::Plugin.register :redmine_reminder do
   name 'Reminder Plugin'
   author 'carolcoral'
@@ -27,7 +25,7 @@ Redmine::Plugin.register :redmine_reminder do
   end
 end
 
-require 'redmine_reminder/scheduler'
+require_relative 'lib/redmine_reminder/scheduler'
 
 class RedmineReminder::SchedulerJob
   def self.perform_now
