@@ -3,7 +3,7 @@ class ReminderSetting < ActiveRecord::Base
   validates :remind_before_days, numericality: { only_integer: true, greater_than: 0 }
   validates :frequency_limit, numericality: { only_integer: true, greater_than: 0 }
 
-  serialize :selected_projects, Array
+  serialize :selected_projects
 
   before_save :ensure_selected_projects_array
   before_validation :ensure_default_values
@@ -51,7 +51,18 @@ class ReminderSetting < ActiveRecord::Base
 
   def selected_project_ids
     return [] if selected_projects.blank?
-    selected_projects.map(&:to_i)
+    projects = selected_projects.is_a?(String) ? JSON.parse(selected_projects) : selected_projects
+    projects.map(&:to_i)
+  end
+
+  def selected_projects=(value)
+    if value.is_a?(Array)
+      write_attribute(:selected_projects, value.map(&:to_s))
+    elsif value.is_a?(String)
+      write_attribute(:selected_projects, value)
+    else
+      write_attribute(:selected_projects, value)
+    end
   end
 
   def schedule_time_minutes
@@ -64,7 +75,7 @@ class ReminderSetting < ActiveRecord::Base
 
   def ensure_selected_projects_array
     self.selected_projects = [] if selected_projects.nil?
-    self.selected_projects = selected_projects.map(&:to_i).uniq
+    self.selected_projects = selected_projects.map(&:to_i).uniq if selected_projects.is_a?(Array)
   end
 
   def ensure_default_values
