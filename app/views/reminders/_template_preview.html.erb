@@ -1,0 +1,82 @@
+<div class="template-preview-container">
+  <div class="preview-header">
+    <h4><%= l(:reminder_settings_preview_result) %></h4>
+  </div>
+  <div class="preview-body">
+    <%
+      html = template.dup
+      html.gsub!('{{user_name}}', user.name)
+      html.gsub!('{{user_email}}', user.mail)
+      html.gsub!('{{project_name}}', tasks.first[:project_name])
+
+      redmine_url = "#{Setting.protocol}://#{Setting.host_name}"
+      html.gsub!('{{project_url}}', redmine_url)
+
+      task_html = ''
+      tasks.each do |task|
+        task_html << <<-HTML
+          <tr>
+            <td style="padding: 12px; border: 1px solid #ddd;">#{task[:issue_id]}</td>
+            <td style="padding: 12px; border: 1px solid #ddd;">
+              <a href="#{task[:url]}">#{task[:issue_name]}</a>
+            </td>
+            <td style="padding: 12px; border: 1px solid #ddd;">#{task[:due_date]}</td>
+            <td style="padding: 12px; border: 1px solid #ddd;">
+              <span style="color: #{task[:is_overdue] ? '#c00' : '#e67e22'};">
+                #{task[:status]}
+              </span>
+            </td>
+          </tr>
+        HTML
+      end
+      html.gsub!(/\{\{#each tasks\}\}.*\{\{\/each\}\}/m, task_html)
+    %>
+    <div class="preview-content">
+      <%= raw html %>
+    </div>
+  </div>
+</div>
+
+<style>
+.template-preview-container {
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+}
+
+.preview-header {
+  padding: 15px;
+  border-bottom: 1px solid #e0e0e0;
+  background: #f5f5f5;
+}
+
+.preview-header h4 {
+  margin: 0;
+  font-size: 14px;
+  color: #333;
+}
+
+.preview-body {
+  padding: 20px;
+}
+
+.preview-content {
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.preview-content h2 {
+  color: #333;
+  border-bottom: 2px solid #337ab7;
+  padding-bottom: 10px;
+}
+
+.preview-content a {
+  color: #337ab7;
+  text-decoration: none;
+}
+
+.preview-content a:hover {
+  text-decoration: underline;
+}
+</style>

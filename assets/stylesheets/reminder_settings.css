@@ -1,0 +1,225 @@
+.reminder-settings {
+  max-width: 1200px;
+}
+
+.reminder-settings fieldset.box {
+  margin-bottom: 20px;
+  padding: 15px;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  background: #fff;
+}
+
+.reminder-settings fieldset.box legend {
+  font-weight: bold;
+  font-size: 14px;
+  color: #333;
+  padding: 0 10px;
+}
+
+.reminder-settings .form-group {
+  margin-bottom: 15px;
+}
+
+.reminder-settings label {
+  font-weight: 600;
+  margin-bottom: 5px;
+  display: block;
+}
+
+.reminder-settings .info {
+  font-size: 12px;
+  color: #666;
+  display: block;
+  margin-top: 5px;
+}
+
+.reminder-settings .required {
+  color: #c00;
+}
+
+.project-selector {
+  padding: 10px 0;
+}
+
+.projects-tree {
+  max-height: 400px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 10px;
+  background: #fafafa;
+}
+
+.projects-tree .project-child {
+  display: none;
+}
+
+.projects-tree .project-child[data-parent-id=""] {
+  display: block;
+}
+
+.projects-tree label {
+  cursor: pointer;
+  margin: 5px 0;
+}
+
+.projects-tree .parent-project {
+  font-weight: bold;
+  color: #333;
+}
+
+.projects-tree .spacer {
+  display: inline-block;
+  width: 20px;
+}
+
+.toggle-children {
+  cursor: pointer;
+  margin-right: 5px;
+}
+
+.toggle-children .icon {
+  font-size: 12px;
+}
+
+.template-placeholders {
+  margin-bottom: 20px;
+  padding: 15px;
+  background: #f5f5f5;
+  border-radius: 4px;
+}
+
+.template-placeholders h4 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  color: #333;
+}
+
+.placeholders-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 12px;
+}
+
+.placeholder-item {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.placeholder-item:hover {
+  border-color: #337ab7;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.placeholder-item code {
+  background: #2c3e50;
+  color: #fff;
+  padding: 4px 8px;
+  border-radius: 3px;
+  font-size: 12px;
+  margin-right: 12px;
+  white-space: nowrap;
+}
+
+.placeholder-item span {
+  color: #666;
+  font-size: 12px;
+}
+
+.placeholder-each {
+  grid-column: 1 / -1;
+  background: #fff9e6;
+  border-color: #f0c36d;
+}
+
+.placeholder-each code {
+  background: #f57c00;
+}
+
+.template-editor {
+  margin: 15px 0;
+}
+
+.template-editor textarea {
+  width: 100%;
+  min-height: 300px;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 13px;
+  line-height: 1.5;
+  resize: vertical;
+}
+
+.template-actions {
+  margin-top: 15px;
+  display: flex;
+  gap: 15px;
+}
+
+.template-actions a {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 8px 15px;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  color: #333;
+  text-decoration: none;
+  transition: all 0.2s;
+}
+
+.template-actions a:hover {
+  background: #f5f5f5;
+  border-color: #bbb;
+}
+
+.form-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.contextual {
+  margin-bottom: 15px;
+  display: flex;
+  gap: 15px;
+}
+
+.contextual a {
+  cursor: pointer;
+  color: #337ab7;
+}
+
+.contextual a:hover {
+  text-decoration: underline;
+}
+
+.input-group .input-group-addon {
+  background: #f5f5f5;
+  border: 1px solid #ccc;
+  border-left: none;
+}
+
+.timepicker {
+  padding: 4px;
+}
+
+input[name="reminder_setting[selected_projects][]"][value=""] {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .placeholders-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .template-actions {
+    flex-direction: column;
+  }
+}
