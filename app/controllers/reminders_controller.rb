@@ -2,9 +2,6 @@ class RemindersController < ApplicationController
   before_action :require_admin
 
   def settings
-    @setting = ReminderSetting.setting
-    @projects = Project.where(status: Project::STATUS_ACTIVE).order(:lft)
-
     if request.post? || request.patch?
       save_settings
     end
@@ -46,7 +43,8 @@ class RemindersController < ApplicationController
   end
 
   def preview_template
-    template = params[:template] || ReminderSetting.default_template
+    plugin_settings = Setting.plugin_redmine_reminder || {}
+    template = params[:template].presence || plugin_settings['email_template'].presence || ReminderSetting.default_template
 
     test_tasks = [
       {
@@ -74,10 +72,9 @@ class RemindersController < ApplicationController
   end
 
   def reset_template
-    @setting = ReminderSetting.setting
-    @setting.email_template = ReminderSetting.default_template
-    @setting.save
-    sync_to_plugin_settings
+    current_settings = Setting.plugin_redmine_reminder || {}
+    current_settings['email_template'] = ReminderSetting.default_template
+    Setting.plugin_redmine_reminder = current_settings
 
     flash[:notice] = l(:reminder_settings_template_reset)
     redirect_to action: :settings
@@ -89,38 +86,12 @@ class RemindersController < ApplicationController
     reminder_params = reminder_params_hash
 
     Setting.plugin_redmine_reminder = reminder_params
-    sync_to_model_setting(reminder_params)
 
     flash[:notice] = l(:notice_successful_update)
     redirect_to reminders_settings_path
   rescue => e
     flash[:error] = e.message
     Rails.logger.error "Save settings failed: #{e.message}"
-  end
-
-  def sync_to_plugin_settings
-    setting = ReminderSetting.setting
-    Setting.plugin_redmine_reminder = {
-      'enabled' => setting.enabled?,
-      'remind_before_days' => setting.remind_before_days,
-      'schedule_time' => setting.schedule_time,
-      'frequency_limit' => setting.frequency_limit,
-      'selected_projects' => setting.selected_projects,
-      'email_template' => setting.email_template
-    }
-  end
-
-  def sync_to_model_setting(params)
-    setting = ReminderSetting.setting
-    setting.assign_attributes(
-      enabled: params['enabled'],
-      remind_before_days: params['remind_before_days'],
-      schedule_time: params['schedule_time'],
-      frequency_limit: params['frequency_limit'],
-      selected_projects: params['selected_projects'],
-      email_template: params['email_template']
-    )
-    setting.save!
   end
 
   def reminder_params_hash

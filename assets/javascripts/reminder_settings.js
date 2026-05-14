@@ -13,54 +13,53 @@ function initProjectTree() {
 }
 
 function toggleDescendants(parentId, isChecked) {
-  // Find direct children by data-parent-id attribute
-  var $children = $('.project-row[data-parent-id="' + parentId + '"]');
-  $children.each(function() {
-    var $checkbox = $(this).find('.project-checkbox');
-    $checkbox.prop('checked', isChecked);
-    // Recursively toggle this child's descendants
-    var childProjectId = $checkbox.data('project-id');
-    if (childProjectId) {
-      toggleDescendants(childProjectId, isChecked);
-    }
+  // Find direct children container by looking for the next sibling .project-children
+  var $parentRow = $('.project-row[data-project-id="' + parentId + '"]');
+  var $childrenContainer = $parentRow.next('.project-children');
+  
+  if ($childrenContainer.length === 0) {
+    // Try finding children within the same parent container
+    $childrenContainer = $parentRow.closest('.project-children').find('.project-row[data-project-id="' + parentId + '"]').next('.project-children');
+  }
+  
+  $childrenContainer.find('.project-checkbox').prop('checked', isChecked);
+  // Also recursively handle nested children
+  $childrenContainer.find('.project-checkbox[data-has-children="true"]').each(function() {
+    toggleDescendants($(this).data('project-id'), isChecked);
   });
 }
 
 function toggleProjectChildren(projectId) {
-  var $toggle = $('.toggle-children.' + projectId);
+  var $toggle = $('.toggle-children[data-project-id="' + projectId + '"]');
   var $parentRow = $toggle.closest('.project-row');
+  var $childrenContainer = $parentRow.next('.project-children');
 
-  if ($toggle.hasClass('icon-collapsed')) {
+  if ($childrenContainer.length > 0 && $childrenContainer.is(':hidden')) {
     $toggle.removeClass('icon-collapsed').addClass('icon-expended');
-    // Show direct children
-    $('.project-row[data-parent-id="' + projectId + '"]').show();
-  } else {
+    $childrenContainer.show();
+  } else if ($childrenContainer.length > 0) {
     $toggle.removeClass('icon-expended').addClass('icon-collapsed');
-    // Hide all descendants recursively
-    hideDescendants(projectId);
+    hideAllDescendants($childrenContainer);
   }
 }
 
-function hideDescendants(parentId) {
-  var $children = $('.project-row[data-parent-id="' + parentId + '"]');
-  $children.hide();
-  $children.find('.toggle-children').removeClass('icon-expended').addClass('icon-collapsed');
-  $children.each(function() {
-    var childId = $(this).data('project-id');
-    // Recursively hide children
-    hideDescendants(childId);
+function hideAllDescendants($container) {
+  $container.hide();
+  $container.find('.toggle-children').removeClass('icon-expended').addClass('icon-collapsed');
+  $container.find('.project-children').each(function() {
+    hideAllDescendants($(this));
   });
 }
 
 function expandAllProjects() {
   $('.toggle-children').removeClass('icon-collapsed').addClass('icon-expended');
-  $('.project-row').show();
+  $('.projects-tree .project-children').show();
 }
 
 function collapseAllProjects() {
   $('.toggle-children').removeClass('icon-expended').addClass('icon-collapsed');
-  // Hide all except root projects (projects with no parent)
-  $('.project-row[data-parent-id]').hide();
+  $('.projects-tree > .project-children').find('.project-children').hide();
+  $('.projects-tree > .project-children > .project-row + .project-children').hide();
 }
 
 function initPreviewModal() {
