@@ -2,6 +2,7 @@
   <%
     plugin_settings = Setting.plugin_redmine_reminder || {}
     selected_projects = plugin_settings['selected_projects'] || []
+    @projects ||= Project.where(status: Project::STATUS_ACTIVE).order(:lft)
   %>
   <%= form_tag reminders_settings_path, method: :post do %>
     <fieldset class="box">
