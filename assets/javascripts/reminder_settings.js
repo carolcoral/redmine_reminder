@@ -22,12 +22,25 @@ function initTimeInput() {
 }
 
 function initProjectTree() {
-  // Handle parent checkbox change - toggle children
+  // Handle parent checkbox change - toggle all descendants recursively
   $(document).on('change', '.project-checkbox[data-has-children="true"]', function() {
-    var projectId = $(this).val();
+    var projectId = $(this).data('project-id');
     var isChecked = $(this).prop('checked');
+    toggleDescendants(projectId, isChecked);
+  });
+}
 
-    $('[data-parent-id="' + projectId + '"]').find('.project-checkbox').prop('checked', isChecked);
+function toggleDescendants(parentId, isChecked) {
+  // Find direct children by data-parent-id
+  var $children = $('[data-parent-id="' + parentId + '"]');
+  $children.each(function() {
+    var $checkbox = $(this).find('.project-checkbox');
+    $checkbox.prop('checked', isChecked);
+    // Recursively toggle this child's descendants
+    var childProjectId = $checkbox.data('project-id');
+    if (childProjectId) {
+      toggleDescendants(childProjectId, isChecked);
+    }
   });
 }
 
@@ -51,18 +64,6 @@ function expandAllProjects() {
 function collapseAllProjects() {
   $('.toggle-children').removeClass('icon-expended').addClass('icon-collapsed');
   $('.project-child').hide();
-}
-
-function selectAllProjects() {
-  $('.project-checkbox').prop('checked', true);
-}
-
-function deselectAllProjects() {
-  $('.project-checkbox').prop('checked', false);
-}
-
-function toggleAllProjects(checked) {
-  $('.project-checkbox').prop('checked', checked);
 }
 
 function initPreviewModal() {

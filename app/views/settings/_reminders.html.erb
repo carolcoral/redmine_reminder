@@ -69,7 +69,7 @@
         <%= text_area_tag 'reminder_setting[ip_whitelist]',
               plugin_settings['ip_whitelist'] || '',
               rows: 4,
-              placeholder: '192.168.1.1\n10.0.0.0/24\n127.0.0.1',
+              placeholder: "192.168.1.1\n10.0.0.0/24\n127.0.0.1",
               class: 'ip-whitelist-input' %>
         <div class="ip-hint">
           <%= l(:reminder_settings_ip_whitelist_hint) %>
@@ -83,12 +83,6 @@
         <div class="contextual">
           <a href="#" onclick="expandAllProjects(); return false;" class="icon icon-expended" title="<%= l(:reminder_settings_expand_all) %>"></a>
           <a href="#" onclick="collapseAllProjects(); return false;" class="icon icon-collapsed" title="<%= l(:reminder_settings_collapse_all) %>"></a>
-          <span class="separator">|</span>
-          <label style="display: inline-flex; align-items: center; vertical-align: middle; cursor: pointer;">
-            <%= check_box_tag 'select_all_projects', '1', false, 
-                  onclick: 'toggleAllProjects(this.checked);',
-                  title: l(:reminder_settings_select_all) %>
-          </label>
         </div>
 
         <div class="projects-tree" id="projects-tree">
@@ -135,7 +129,7 @@
                         selected_proj_ids.include?(project.id),
                         id: checkbox_id,
                         class: 'project-checkbox',
-                        data: { parent_id: project.parent_id, has_children: children.any? }) +
+                        data: { parent_id: project.parent_id, has_children: children.any?, project_id: project.id }) +
                       ' ' + h(project.name)
                     end
 
@@ -160,68 +154,50 @@
 
       <div class="template-placeholders">
         <h4><%= l(:reminder_settings_available_placeholders) %></h4>
-        <div class="placeholders-grid">
-          <div class="placeholder-card">
-            <code>{{user_name}}</code>
-            <p class="placeholder-desc"><%= l(:reminder_placeholder_user_name) %></p>
-          </div>
-          <div class="placeholder-card">
-            <code>{{user_email}}</code>
-            <p class="placeholder-desc"><%= l(:reminder_placeholder_user_email) %></p>
-          </div>
-          <div class="placeholder-card">
-            <code>{{project_name}}</code>
-            <p class="placeholder-desc"><%= l(:reminder_placeholder_project_name) %></p>
-          </div>
-          <div class="placeholder-card">
-            <code>{{project_url}}</code>
-            <p class="placeholder-desc"><%= l(:reminder_placeholder_project_url) %></p>
-          </div>
-          <div class="placeholder-card">
-            <code>{{issue_id}}</code>
-            <p class="placeholder-desc"><%= l(:reminder_placeholder_issue_id) %></p>
-          </div>
-          <div class="placeholder-card">
-            <code>{{issue_name}}</code>
-            <p class="placeholder-desc"><%= l(:reminder_placeholder_issue_name) %></p>
-          </div>
-          <div class="placeholder-card">
-            <code>{{due_date}}</code>
-            <p class="placeholder-desc"><%= l(:reminder_placeholder_due_date) %></p>
-          </div>
-          <div class="placeholder-card">
-            <code>{{status}}</code>
-            <p class="placeholder-desc"><%= l(:reminder_placeholder_status) %></p>
-          </div>
-          <div class="placeholder-card">
-            <code>{{priority}}</code>
-            <p class="placeholder-desc"><%= l(:reminder_placeholder_priority) %></p>
-          </div>
-          <div class="placeholder-card">
-            <code>{{assigned_to}}</code>
-            <p class="placeholder-desc"><%= l(:reminder_placeholder_assigned_to) %></p>
-          </div>
-          <div class="placeholder-card">
-            <code>{{tracker}}</code>
-            <p class="placeholder-desc"><%= l(:reminder_placeholder_tracker) %></p>
-          </div>
-          <div class="placeholder-card">
-            <code>{{description}}</code>
-            <p class="placeholder-desc"><%= l(:reminder_placeholder_description) %></p>
-          </div>
-          <div class="placeholder-card">
-            <code>{{overdue_days}}</code>
-            <p class="placeholder-desc"><%= l(:reminder_placeholder_overdue_days) %></p>
-          </div>
-          <div class="placeholder-card">
-            <code>{{issue_url}}</code>
-            <p class="placeholder-desc"><%= l(:reminder_placeholder_issue_url) %></p>
-          </div>
-          <div class="placeholder-card placeholder-card-wide">
-            <code>{{#each tasks}}...{{/each}}</code>
-            <p class="placeholder-desc"><%= l(:reminder_placeholder_each_tasks) %></p>
-          </div>
-        </div>
+        <table class="placeholders-table">
+          <tbody>
+            <tr>
+              <td><code>{{user_name}}</code></td>
+              <td><%= l(:reminder_placeholder_user_name) %></td>
+              <td><code>{{user_email}}</code></td>
+              <td><%= l(:reminder_placeholder_user_email) %></td>
+              <td><code>{{project_name}}</code></td>
+              <td><%= l(:reminder_placeholder_project_name) %></td>
+            </tr>
+            <tr>
+              <td><code>{{project_url}}</code></td>
+              <td><%= l(:reminder_placeholder_project_url) %></td>
+              <td><code>{{issue_id}}</code></td>
+              <td><%= l(:reminder_placeholder_issue_id) %></td>
+              <td><code>{{issue_name}}</code></td>
+              <td><%= l(:reminder_placeholder_issue_name) %></td>
+            </tr>
+            <tr>
+              <td><code>{{due_date}}</code></td>
+              <td><%= l(:reminder_placeholder_due_date) %></td>
+              <td><code>{{status}}</code></td>
+              <td><%= l(:reminder_placeholder_status) %></td>
+              <td><code>{{priority}}</code></td>
+              <td><%= l(:reminder_placeholder_priority) %></td>
+            </tr>
+            <tr>
+              <td><code>{{assigned_to}}</code></td>
+              <td><%= l(:reminder_placeholder_assigned_to) %></td>
+              <td><code>{{tracker}}</code></td>
+              <td><%= l(:reminder_placeholder_tracker) %></td>
+              <td><code>{{description}}</code></td>
+              <td><%= l(:reminder_placeholder_description) %></td>
+            </tr>
+            <tr>
+              <td><code>{{overdue_days}}</code></td>
+              <td><%= l(:reminder_placeholder_overdue_days) %></td>
+              <td><code>{{issue_url}}</code></td>
+              <td><%= l(:reminder_placeholder_issue_url) %></td>
+              <td><code>{{#each tasks}}</code></td>
+              <td><%= l(:reminder_placeholder_each_tasks) %></td>
+            </tr>
+          </tbody>
+        </table>
       </div>
 
       <div class="template-editor">
@@ -294,6 +270,8 @@
   display: inline-block;
   width: 56px;
   height: 28px;
+  margin: 0;
+  padding: 0;
 }
 .main-switch-checkbox {
   opacity: 0;
@@ -426,7 +404,7 @@
   cursor: pointer;
 }
 
-/* Template Placeholders - Grid Layout */
+/* Template Placeholders - Table Layout */
 .template-placeholders {
   margin-bottom: 20px;
 }
@@ -435,41 +413,35 @@
   color: #333;
   font-size: 14px;
 }
-.placeholders-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 12px;
-}
-.placeholder-card {
-  background: #fff;
+.placeholders-table {
+  width: 100%;
+  border-collapse: collapse;
   border: 1px solid #e8e8e8;
-  border-radius: 6px;
-  padding: 12px 15px;
-  transition: all 0.2s ease;
 }
-.placeholder-card:hover {
-  border-color: #259e56;
-  box-shadow: 0 2px 8px rgba(37, 158, 86, 0.1);
-}
-.placeholder-card code {
-  display: block;
-  background: #f5f5f5;
-  padding: 6px 10px;
-  border-radius: 4px;
+.placeholders-table td {
+  padding: 10px 12px;
+  border: 1px solid #f0f0f0;
   font-size: 13px;
+  vertical-align: middle;
+}
+.placeholders-table td:nth-child(odd) {
+  background: #fafafa;
+  width: 12%;
+  text-align: center;
+}
+.placeholders-table td:nth-child(even) {
+  width: 21%;
+  color: #555;
+}
+.placeholders-table td code {
+  background: #f0f0f0;
+  padding: 3px 8px;
+  border-radius: 3px;
+  font-size: 12px;
   color: #259e56;
   font-weight: 500;
-  margin-bottom: 8px;
-  border: 1px solid #eee;
-}
-.placeholder-desc {
-  margin: 0;
-  font-size: 12px;
-  color: #666;
-  line-height: 1.4;
-}
-.placeholder-card-wide {
-  grid-column: span 2;
+  border: 1px solid #e0e0e0;
+  white-space: nowrap;
 }
 
 .template-editor {
