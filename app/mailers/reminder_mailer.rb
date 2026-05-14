@@ -6,10 +6,11 @@ class ReminderMailer < ActionMailer::Base
     @tasks = tasks
     @template = template
 
-    subject = l(:reminder_email_subject, project_name: Setting.app_title)
+    @subject = l(:reminder_email_subject, project_name: Setting.app_title)
+    @html_body = render_reminder_html
 
-    mail(to: user.mail, subject: subject, content_type: 'text/html') do |format|
-      format.html { render_reminder_html }
+    mail(to: user.mail, subject: @subject) do |format|
+      format.html { @html_body }
     end
   end
 

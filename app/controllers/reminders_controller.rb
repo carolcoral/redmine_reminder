@@ -10,6 +10,8 @@ class RemindersController < ApplicationController
   def test_email
     plugin_settings = Setting.plugin_redmine_reminder || {}
     begin
+      Rails.logger.info "[RedmineReminder] Test email started for user: #{User.current.mail}"
+
       test_tasks = [
         {
           issue_id: '#TEST001',
@@ -28,14 +30,19 @@ class RemindersController < ApplicationController
       ]
 
       email_template = plugin_settings['email_template'].presence || ReminderSetting.default_template
+      Rails.logger.info "[RedmineReminder] Sending test email with template length: #{email_template.length}"
+
       ReminderMailer.send_reminder_email(
         User.current,
         test_tasks,
         email_template
       ).deliver_now
 
+      Rails.logger.info "[RedmineReminder] Test email sent successfully"
       flash[:notice] = l(:reminder_test_email_sent)
     rescue => e
+      Rails.logger.error "[RedmineReminder] Test email failed: #{e.class} - #{e.message}"
+      Rails.logger.error "[RedmineReminder] Backtrace: #{e.backtrace&.first(5)&.join("\n")}"
       flash[:error] = "#{l(:reminder_test_email_failed)}: #{e.message}"
     end
 
