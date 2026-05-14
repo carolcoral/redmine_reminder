@@ -9,9 +9,16 @@ class RemindersController < ApplicationController
 
   def test_email
     plugin_settings = Setting.plugin_redmine_reminder || {}
+    
+    Rails.logger.info "=========================================="
+    Rails.logger.info "[RedmineReminder] ====== TEST EMAIL REQUEST ======"
+    Rails.logger.info "[RedmineReminder] User: #{User.current.name} (#{User.current.mail})"
+    Rails.logger.info "[RedmineReminder] Request IP: #{request.ip}"
+    Rails.logger.info "[RedmineReminder] Request URL: #{request.url}"
+    Rails.logger.info "[RedmineReminder] Request Method: #{request.method}"
+    Rails.logger.info "[RedmineReminder] Current Settings: #{plugin_settings.inspect}"
+    
     begin
-      Rails.logger.info "[RedmineReminder] Test email started for user: #{User.current.mail}"
-
       test_tasks = [
         {
           issue_id: '#TEST001',
@@ -30,19 +37,34 @@ class RemindersController < ApplicationController
       ]
 
       email_template = plugin_settings['email_template'].presence || ReminderSetting.default_template
-      Rails.logger.info "[RedmineReminder] Sending test email with template length: #{email_template.length}"
+      Rails.logger.info "[RedmineReminder] Email Template Length: #{email_template.length} characters"
+      Rails.logger.info "[RedmineReminder] Email Template Preview: #{email_template.truncate(200)}"
 
-      ReminderMailer.send_reminder_email(
+      mailer_result = ReminderMailer.send_reminder_email(
         User.current,
         test_tasks,
         email_template
       ).deliver_now
 
-      Rails.logger.info "[RedmineReminder] Test email sent successfully"
+      Rails.logger.info "[RedmineReminder] ====== TEST EMAIL RESPONSE ======"
+      Rails.logger.info "[RedmineReminder] Mailer Result Class: #{mailer_result.class}"
+      Rails.logger.info "[RedmineReminder] Mailer Result: #{mailer_result.inspect}"
+      Rails.logger.info "[RedmineReminder] From: #{mailer_result.from}"
+      Rails.logger.info "[RedmineReminder] To: #{mailer_result.to}"
+      Rails.logger.info "[RedmineReminder] Subject: #{mailer_result.subject}"
+      Rails.logger.info "[RedmineReminder] Message ID: #{mailer_result.message_id}"
+      Rails.logger.info "[RedmineReminder] Test email sent successfully to #{User.current.mail}"
+      Rails.logger.info "=========================================="
+      
       flash[:notice] = l(:reminder_test_email_sent)
     rescue => e
-      Rails.logger.error "[RedmineReminder] Test email failed: #{e.class} - #{e.message}"
-      Rails.logger.error "[RedmineReminder] Backtrace: #{e.backtrace&.first(5)&.join("\n")}"
+      Rails.logger.error "[RedmineReminder] ====== TEST EMAIL ERROR ======"
+      Rails.logger.error "[RedmineReminder] Error Class: #{e.class}"
+      Rails.logger.error "[RedmineReminder] Error Message: #{e.message}"
+      Rails.logger.error "[RedmineReminder] Backtrace:"
+      Rails.logger.error e.backtrace&.first(10)&.join("\n")
+      Rails.logger.error "=========================================="
+      
       flash[:error] = "#{l(:reminder_test_email_failed)}: #{e.message}"
     end
 
