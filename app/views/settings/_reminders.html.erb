@@ -41,10 +41,10 @@
             <th><%= l(:reminder_settings_schedule_time) %></th>
             <td>
               <span class="input-group">
-                <%= text_field_tag 'reminder_setting[schedule_time]',
+                <%= time_field_tag 'reminder_setting[schedule_time]',
                       plugin_settings['schedule_time'] || '09:00',
-                      size: 10 %>
-                <span class="input-suffix">HH:MM</span>
+                      class: 'time-picker',
+                      step: 60 %>
               </span>
               <span class="field-desc"><%= l(:reminder_settings_schedule_time_info) %></span>
             </td>
@@ -92,10 +92,21 @@
 
         <div class="projects-tree" id="projects-tree">
           <%
-            def render_project_node(project, selected_proj_ids, depth = 0)
+            def get_project_depth(project)
+              depth = 0
+              p = project
+              while p.parent_id.present?
+                depth += 1
+                p = p.parent
+              end
+              depth
+            end
+
+            def render_project_node(project, selected_proj_ids)
               children = Project.where(parent_id: project.id, status: Project::STATUS_ACTIVE).order(:lft).to_a
               has_children = children.any?
               checkbox_id = "project_#{project.id}"
+              depth = get_project_depth(project)
 
               toggle_html = if has_children
                 link_to_function('', '',
@@ -117,12 +128,12 @@
 
               row_html = content_tag(:div, toggle_html + label_html,
                 class: 'project-row',
-                style: "padding-left: #{depth * 20}px;",
+                style: "padding-left: #{depth * 20}px; display: #{depth > 0 ? 'none' : 'block'};",
                 data: { project_id: project.id, parent_id: project.parent_id })
 
               children_html = ''
               if has_children
-                children_html = children.map { |child| render_project_node(child, selected_proj_ids, depth + 1) }.join.html_safe
+                children_html = children.map { |child| render_project_node(child, selected_proj_ids) }.join.html_safe
               end
 
               row_html + children_html
@@ -319,6 +330,13 @@
   color: #999;
   font-size: 12px;
   margin-top: 4px;
+}
+.time-picker {
+  padding: 4px 8px;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  font-size: 14px;
+  min-width: 100px;
 }
 
 /* IP Whitelist */

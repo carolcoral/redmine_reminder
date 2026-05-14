@@ -1,25 +1,7 @@
 $(document).ready(function() {
-  initTimeInput();
   initProjectTree();
   initPreviewModal();
 });
-
-function initTimeInput() {
-  var timeInput = document.getElementById('reminder_setting_schedule_time');
-  if (timeInput && !timeInput.readOnly) {
-    timeInput.addEventListener('input', function(e) {
-      var value = this.value;
-      var numbers = value.replace(/\D/g, '');
-      if (numbers.length >= 2) {
-        var hours = numbers.substring(0, 2);
-        var minutes = numbers.substring(2, 4);
-        if (parseInt(hours) > 23) hours = '23';
-        if (parseInt(minutes) > 59) minutes = '59';
-        this.value = hours + ':' + (minutes || '00');
-      }
-    });
-  }
-}
 
 function initProjectTree() {
   // Handle parent checkbox change - toggle all descendants recursively
