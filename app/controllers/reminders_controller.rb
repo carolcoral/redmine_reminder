@@ -11,7 +11,7 @@ class RemindersController < ApplicationController
   end
 
   def test_email
-    @setting = ReminderSetting.setting
+    plugin_settings = Setting.plugin_redmine_reminder || {}
     begin
       test_tasks = [
         {
@@ -30,10 +30,11 @@ class RemindersController < ApplicationController
         }
       ]
 
+      email_template = plugin_settings['email_template'].presence || ReminderSetting.default_template
       ReminderMailer.send_reminder_email(
         User.current,
         test_tasks,
-        @setting.email_template
+        email_template
       ).deliver_now
 
       flash[:notice] = l(:reminder_test_email_sent)

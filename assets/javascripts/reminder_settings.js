@@ -46,7 +46,7 @@ function toggleDescendants(parentId, isChecked) {
 
 function toggleProjectChildren(projectId) {
   var $toggle = $('.toggle-children.' + projectId);
-  var $parentRow = $('.project-row[data-project-id="' + projectId + '"]');
+  var $parentRow = $toggle.closest('.project-row');
 
   if ($toggle.hasClass('icon-collapsed')) {
     $toggle.removeClass('icon-collapsed').addClass('icon-expended');
@@ -62,10 +62,9 @@ function toggleProjectChildren(projectId) {
 function hideDescendants(parentId) {
   var $children = $('.project-row[data-parent-id="' + parentId + '"]');
   $children.hide();
+  $children.find('.toggle-children').removeClass('icon-expended').addClass('icon-collapsed');
   $children.each(function() {
     var childId = $(this).data('project-id');
-    // Reset toggle icon to collapsed
-    $('.toggle-children.' + childId).removeClass('icon-expended').addClass('icon-collapsed');
     // Recursively hide children
     hideDescendants(childId);
   });
@@ -78,7 +77,7 @@ function expandAllProjects() {
 
 function collapseAllProjects() {
   $('.toggle-children').removeClass('icon-expended').addClass('icon-collapsed');
-  // Hide all except root projects (parent_id is null or empty)
+  // Hide all except root projects (projects with no parent)
   $('.project-row[data-parent-id]').hide();
 }
 
