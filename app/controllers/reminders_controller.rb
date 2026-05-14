@@ -6,14 +6,7 @@ class RemindersController < ApplicationController
     @projects = Project.where(status: Project::STATUS_ACTIVE).order(:lft)
 
     if request.post? || request.patch?
-      @setting.assign_attributes(reminder_params)
-      if @setting.save
-        flash[:notice] = l(:notice_successful_update)
-        redirect_to reminders_settings_path
-      else
-        flash[:error] = @setting.errors.full_messages.join(', ')
-        Rails.logger.error "ReminderSetting save failed: #{@setting.errors.full_messages}"
-      end
+      save_settings
     end
   end
 
@@ -83,6 +76,7 @@ class RemindersController < ApplicationController
     @setting = ReminderSetting.setting
     @setting.email_template = ReminderSetting.default_template
     @setting.save
+    sync_to_plugin_settings
 
     flash[:notice] = l(:reminder_settings_template_reset)
     redirect_to action: :settings
@@ -90,7 +84,45 @@ class RemindersController < ApplicationController
 
   private
 
-  def reminder_params
+  def save_settings
+    reminder_params = reminder_params_hash
+
+    Setting.plugin_redmine_reminder = reminder_params
+    sync_to_model_setting(reminder_params)
+
+    flash[:notice] = l(:notice_successful_update)
+    redirect_to reminders_settings_path
+  rescue => e
+    flash[:error] = e.message
+    Rails.logger.error "Save settings failed: #{e.message}"
+  end
+
+  def sync_to_plugin_settings
+    setting = ReminderSetting.setting
+    Setting.plugin_redmine_reminder = {
+      'enabled' => setting.enabled?,
+      'remind_before_days' => setting.remind_before_days,
+      'schedule_time' => setting.schedule_time,
+      'frequency_limit' => setting.frequency_limit,
+      'selected_projects' => setting.selected_projects,
+      'email_template' => setting.email_template
+    }
+  end
+
+  def sync_to_model_setting(params)
+    setting = ReminderSetting.setting
+    setting.assign_attributes(
+      enabled: params['enabled'],
+      remind_before_days: params['remind_before_days'],
+      schedule_time: params['schedule_time'],
+      frequency_limit: params['frequency_limit'],
+      selected_projects: params['selected_projects'],
+      email_template: params['email_template']
+    )
+    setting.save!
+  end
+
+  def reminder_params_hash
     params_hash = params.fetch(:reminder_setting, {})
 
     permitted_params = params_hash.permit(
@@ -100,12 +132,12 @@ class RemindersController < ApplicationController
       :email_template,
       :enabled,
       selected_projects: []
-    ).to_h.deep_symbolize_keys
+    ).to_h
 
-    permitted_params[:enabled] = permitted_params[:enabled] == '1' || permitted_params[:enabled] == true
-    permitted_params[:selected_projects] = (permitted_params[:selected_projects] || []).reject(&:blank?).map(&:to_i)
-    permitted_params[:remind_before_days] = permitted_params[:remind_before_days].to_i
-    permitted_params[:frequency_limit] = permitted_params[:frequency_limit].to_i
+    permitted_params['enabled'] = permitted_params['enabled'] == '1' || permitted_params['enabled'] == true
+    permitted_params['selected_projects'] = (permitted_params['selected_projects'] || []).reject(&:blank?).map(&:to_s)
+    permitted_params['remind_before_days'] = permitted_params['remind_before_days'].to_i
+    permitted_params['frequency_limit'] = permitted_params['frequency_limit'].to_i
 
     permitted_params
   end

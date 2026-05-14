@@ -1,4 +1,8 @@
 <div class="reminder-settings">
+  <%
+    plugin_settings = Setting.plugin_redmine_reminder || {}
+    selected_projects = plugin_settings['selected_projects'] || []
+  %>
   <%= form_tag reminders_settings_path, method: :post do %>
     <fieldset class="box">
       <legend><%= l(:reminder_settings_basic) %></legend>
@@ -12,7 +16,7 @@
             </label>
             <div class="input-group" style="max-width: 200px;">
               <%= number_field_tag 'reminder_setting[remind_before_days]',
-                    @setting.remind_before_days,
+                    plugin_settings['remind_before_days'] || 3,
                     min: 1,
                     class: 'form-control' %>
               <span class="input-group-addon"><%= l(:reminder_settings_days_unit) %></span>
@@ -29,7 +33,7 @@
             </label>
             <div class="input-group" style="max-width: 150px;">
               <%= text_field_tag 'reminder_setting[schedule_time]',
-                    @setting.schedule_time,
+                    plugin_settings['schedule_time'] || '09:00',
                     class: 'form-control timepicker',
                     placeholder: 'HH:MM',
                     data: { provide: 'timepicker', 'time-minute-step' => 1 } %>
@@ -47,7 +51,7 @@
             </label>
             <div class="input-group" style="max-width: 200px;">
               <%= number_field_tag 'reminder_setting[frequency_limit]',
-                    @setting.frequency_limit,
+                    plugin_settings['frequency_limit'] || 7,
                     min: 1,
                     class: 'form-control' %>
               <span class="input-group-addon">/min</span>
@@ -60,7 +64,7 @@
           <div class="col-xs-12 col-sm-6">
             <label>
               <%= check_box_tag 'reminder_setting[enabled]', '1',
-                    @setting.enabled %>
+                    plugin_settings['enabled'] == '1' || plugin_settings['enabled'] == true %>
               <%= l(:reminder_settings_enabled) %>
             </label>
           </div>
@@ -78,7 +82,7 @@
 
         <div class="projects-tree" id="projects-tree">
           <%
-            def render_project_tree_with_indent(projects, level_offset = 0)
+            def render_project_tree_with_indent(projects, selected_proj_ids, level_offset = 0)
               output = []
               projects.each do |project|
                 is_indent = project.parent_id.present?
@@ -88,7 +92,7 @@
                 children_html = ''
                 if project.children.any?
                   children_html = capture do
-                    render_project_tree_with_indent(project.children, level_offset + 1)
+                    render_project_tree_with_indent(project.children, selected_proj_ids, level_offset + 1)
                   end
                 end
 
@@ -105,7 +109,7 @@
                     label_html = label_tag(checkbox_id, class: 'block') do
                       check_box_tag('reminder_setting[selected_projects][]',
                         project.id,
-                        @setting.selected_project_ids.include?(project.id),
+                        selected_proj_ids.include?(project.id),
                         id: checkbox_id,
                         class: 'project-checkbox',
                         data: { parent_id: project.parent_id, has_children: project.children.any? }) +
@@ -124,7 +128,7 @@
             end
           %>
 
-          <%= render_project_tree_with_indent(@projects) %>
+          <%= render_project_tree_with_indent(@projects, selected_projects.map(&:to_i)) %>
         </div>
 
         <div style="margin-top: 10px;">
@@ -209,7 +213,7 @@
 
       <div class="template-editor">
         <%= text_area_tag 'reminder_setting[email_template]',
-              @setting.email_template,
+              plugin_settings['email_template'] || ReminderSetting.default_template,
               rows: 20,
               class: 'wiki-edit form-control',
               style: 'font-family: monospace;' %>
