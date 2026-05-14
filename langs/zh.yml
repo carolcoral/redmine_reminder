@@ -9,6 +9,7 @@ zh:
   reminder_settings_frequency_limit: "发送频率限制"
   reminder_settings_frequency_info: "每分钟最大发送邮件数量"
   reminder_settings_enabled: "启用提醒功能"
+  reminder_settings_disabled: "禁用"
   reminder_settings_main_enable: "启用插件"
   reminder_settings_main_enable_desc: "仅在启用时，定时提醒任务才会执行"
   reminder_settings_projects: "选择项目"

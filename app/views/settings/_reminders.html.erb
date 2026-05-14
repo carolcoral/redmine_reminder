@@ -6,19 +6,23 @@
   <%= form_tag reminders_settings_path, method: :post do %>
 
     <%# Main Enable Switch %>
-    <div class="main-switch-container">
-      <div class="main-switch">
-        <label class="switch-label">
-          <%= check_box_tag 'reminder_setting[plugin_enabled]', '1',
-                plugin_settings['plugin_enabled'] == '1' || plugin_settings['plugin_enabled'] == true,
-                class: 'main-switch-checkbox' %>
-          <span class="switch-slider"></span>
-        </label>
-        <span class="switch-text">
-          <%= l(:reminder_settings_main_enable) %>
-        </span>
-      </div>
-      <p class="switch-desc"><%= l(:reminder_settings_main_enable_desc) %></p>
+    <div class="main-enable-container">
+      <table class="settings-table">
+        <tbody>
+          <tr>
+            <th style="width: 30%;"><%= l(:reminder_settings_main_enable) %></th>
+            <td>
+              <%= select_tag 'reminder_setting[plugin_enabled]',
+                    options_for_select([
+                      [l(:reminder_settings_enabled), '1'],
+                      [l(:reminder_settings_disabled), '0']
+                    ], plugin_settings['plugin_enabled'] == '0' ? '0' : '1'),
+                    class: 'main-enable-select' %>
+              <span class="field-desc"><%= l(:reminder_settings_main_enable_desc) %></span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
 
     <fieldset class="box settings-section">
@@ -97,46 +101,43 @@
               depth
             end
 
-            def render_project_tree_with_indent(projects, selected_proj_ids)
+            def render_project_tree(projects, selected_proj_ids, depth = 0)
               output = []
               projects.each do |project|
-                is_indent = project.parent_id.present?
-                indent_class = is_indent ? 'project-child' : ''
                 checkbox_id = "project_#{project.id}"
-                depth = get_project_depth(project)
+                children = Project.where(parent_id: project.id, status: Project::STATUS_ACTIVE).order(:lft).to_a
+                has_children = children.any?
 
-                children_html = ''
-                children = Project.where(parent_id: project.id, status: Project::STATUS_ACTIVE).order(:lft)
-                if children.any?
-                  children_html = capture do
-                    render_project_tree_with_indent(children.to_a, selected_proj_ids)
-                  end
+                # Determine if this item is initially hidden (not a root project)
+                is_hidden = depth > 0
+
+                # Build the row
+                toggle_html = if has_children
+                  link_to_function('', '',
+                    class: "toggle-children #{project.id} icon icon-collapsed",
+                    onclick: "toggleProjectChildren(#{project.id}); return false;")
+                else
+                  content_tag(:span, '', class: 'spacer')
                 end
 
-                output << content_tag(:div,
-                  content_tag(:div, { class: indent_class, style: "margin-left: #{depth * 20}px; display: #{project.parent_id.present? ? 'none' : 'block'};" }) do
-                    toggle_html = if children.any?
-                      link_to_function('', '',
-                        class: "toggle-children #{project.id} icon icon-collapsed",
-                        onclick: "toggleProjectChildren(#{project.id}); return false;")
-                    else
-                      content_tag(:span, '', class: 'spacer')
-                    end
+                label_html = label_tag(checkbox_id, class: 'project-label') do
+                  check_box_tag('reminder_setting[selected_projects][]',
+                    project.id,
+                    selected_proj_ids.include?(project.id),
+                    id: checkbox_id,
+                    class: 'project-checkbox',
+                    data: { parent_id: project.parent_id, has_children: has_children, project_id: project.id }) +
+                  ' ' + h(project.name)
+                end
 
-                    label_html = label_tag(checkbox_id, class: 'block') do
-                      check_box_tag('reminder_setting[selected_projects][]',
-                        project.id,
-                        selected_proj_ids.include?(project.id),
-                        id: checkbox_id,
-                        class: 'project-checkbox',
-                        data: { parent_id: project.parent_id, has_children: children.any?, project_id: project.id }) +
-                      ' ' + h(project.name)
-                    end
+                row_html = content_tag(:div, toggle_html + label_html, class: 'project-row', style: "padding-left: #{depth * 20}px; display: #{is_hidden ? 'none' : 'block'};", data: { project_id: project.id, parent_id: project.parent_id })
 
-                    toggle_html + label_html
-                  end + children_html.html_safe,
-                  class: 'project-item'
-                )
+                output << row_html
+
+                # Recursively render children
+                if has_children
+                  output << render_project_tree(children, selected_proj_ids, depth + 1).html_safe
+                end
               end
               output.join.html_safe
             end
@@ -144,7 +145,7 @@
             root_projects = Project.where(parent_id: nil, status: Project::STATUS_ACTIVE).order(:lft)
           %>
 
-          <%= render_project_tree_with_indent(root_projects.to_a, selected_projects.map(&:to_i)) %>
+          <%= render_project_tree(root_projects.to_a, selected_projects.map(&:to_i)) %>
         </div>
       </div>
     </fieldset>
@@ -251,71 +252,21 @@
   padding: 20px;
 }
 
-/* Main Switch */
-.main-switch-container {
+/* Main Enable Dropdown */
+.main-enable-container {
   background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
   border: 1px solid #dee2e6;
   border-radius: 8px;
-  padding: 20px 25px;
+  padding: 15px 20px;
   margin-bottom: 20px;
-  text-align: center;
 }
-.main-switch {
-  display: inline-flex;
-  align-items: center;
-  gap: 12px;
-}
-.switch-label {
-  position: relative;
-  display: inline-block;
-  width: 56px;
-  height: 28px;
-  margin: 0;
-  padding: 0;
-}
-.main-switch-checkbox {
-  opacity: 0;
-  width: 0;
-  height: 0;
-}
-.switch-slider {
-  position: absolute;
-  cursor: pointer;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: #ccc;
-  transition: .3s;
-  border-radius: 28px;
-}
-.switch-slider:before {
-  position: absolute;
-  content: "";
-  height: 22px;
-  width: 22px;
-  left: 3px;
-  bottom: 3px;
-  background-color: white;
-  transition: .3s;
-  border-radius: 50%;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-}
-.main-switch-checkbox:checked + .switch-slider {
-  background-color: #259e56;
-}
-.main-switch-checkbox:checked + .switch-slider:before {
-  transform: translateX(28px);
-}
-.switch-text {
-  font-size: 18px;
-  font-weight: 600;
-  color: #333;
-}
-.switch-desc {
-  margin: 10px 0 0;
-  color: #6c757d;
-  font-size: 13px;
+.main-enable-select {
+  min-width: 150px;
+  padding: 6px 10px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background: white;
 }
 
 /* Settings Sections */
@@ -388,11 +339,18 @@
   overflow-y: auto;
   border-radius: 4px;
 }
-.project-item {
-  padding: 4px 0;
+.project-row {
+  padding: 6px 0;
+  line-height: 1.6;
 }
-.project-child {
-  padding-left: 0;
+.project-label {
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+  font-size: 14px;
+}
+.project-label .project-checkbox {
+  margin-right: 8px;
 }
 .spacer {
   display: inline-block;
@@ -402,6 +360,7 @@
   display: inline-block;
   width: 20px;
   cursor: pointer;
+  vertical-align: middle;
 }
 
 /* Template Placeholders - Table Layout */

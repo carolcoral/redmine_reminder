@@ -31,8 +31,8 @@ function initProjectTree() {
 }
 
 function toggleDescendants(parentId, isChecked) {
-  // Find direct children by data-parent-id
-  var $children = $('[data-parent-id="' + parentId + '"]');
+  // Find direct children by data-parent-id attribute
+  var $children = $('.project-row[data-parent-id="' + parentId + '"]');
   $children.each(function() {
     var $checkbox = $(this).find('.project-checkbox');
     $checkbox.prop('checked', isChecked);
@@ -46,24 +46,40 @@ function toggleDescendants(parentId, isChecked) {
 
 function toggleProjectChildren(projectId) {
   var $toggle = $('.toggle-children.' + projectId);
+  var $parentRow = $('.project-row[data-project-id="' + projectId + '"]');
 
   if ($toggle.hasClass('icon-collapsed')) {
     $toggle.removeClass('icon-collapsed').addClass('icon-expended');
-    $('[data-parent-id="' + projectId + '"]').show();
+    // Show direct children
+    $('.project-row[data-parent-id="' + projectId + '"]').show();
   } else {
     $toggle.removeClass('icon-expended').addClass('icon-collapsed');
-    $('[data-parent-id="' + projectId + '"]').hide();
+    // Hide all descendants recursively
+    hideDescendants(projectId);
   }
+}
+
+function hideDescendants(parentId) {
+  var $children = $('.project-row[data-parent-id="' + parentId + '"]');
+  $children.hide();
+  $children.each(function() {
+    var childId = $(this).data('project-id');
+    // Reset toggle icon to collapsed
+    $('.toggle-children.' + childId).removeClass('icon-expended').addClass('icon-collapsed');
+    // Recursively hide children
+    hideDescendants(childId);
+  });
 }
 
 function expandAllProjects() {
   $('.toggle-children').removeClass('icon-collapsed').addClass('icon-expended');
-  $('.project-child').show();
+  $('.project-row').show();
 }
 
 function collapseAllProjects() {
   $('.toggle-children').removeClass('icon-expended').addClass('icon-collapsed');
-  $('.project-child').hide();
+  // Hide all except root projects (parent_id is null or empty)
+  $('.project-row[data-parent-id]').hide();
 }
 
 function initPreviewModal() {
