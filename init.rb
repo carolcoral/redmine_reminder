@@ -8,10 +8,13 @@ Redmine::Plugin.register :redmine_reminder do
 
   permission :manage_reminder_settings, {}
 
-  menu :admin_menu, :reminder_settings,
-       { controller: 'reminders', action: 'settings' },
-       caption: :reminder_settings_title,
-       before: :plugins
+  settings default: {
+    enabled: false,
+    remind_before_days: 3,
+    schedule_time: '09:00',
+    frequency_limit: 7,
+    selected_projects: []
+  }, partial: 'settings/reminders', defaults: :reminders
 
   Rails.application.config.after_initialize do
     if defined?(Redmine::Scheduler)

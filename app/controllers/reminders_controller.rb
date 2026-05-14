@@ -110,7 +110,4 @@ class RemindersController < ApplicationController
     permitted_params
   end
 
-  def require_admin
-    require_admin_or_lesser_admin(:manage_reminder_settings)
-  end
 end
