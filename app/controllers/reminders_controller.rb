@@ -40,19 +40,29 @@ class RemindersController < ApplicationController
       Rails.logger.info "[RedmineReminder] Email Template Length: #{email_template.length} characters"
       Rails.logger.info "[RedmineReminder] Email Template Preview: #{email_template.truncate(200)}"
 
-      mailer_result = ReminderMailer.send_reminder_email(
+      # 强制同步发送邮件，不使用异步队列
+      mail_message = ReminderMailer.send_reminder_email(
         User.current,
         test_tasks,
         email_template
-      ).deliver_now
-
+      )
+      
+      # 绕过 ActionMailer 的 deliver_later，使用原始 SMTP 发送
+      Rails.logger.info "[RedmineReminder] Delivery Method: #{mail_message.delivery_method}"
+      Rails.logger.info "[RedmineReminder] SMTP Settings:"
+      Rails.logger.info "[RedmineReminder]   - smtp_settings: #{ActionMailer::Base.smtp_settings.inspect}"
+      Rails.logger.info "[RedmineReminder]   - raise_delivery_errors: #{ActionMailer::Base.raise_delivery_errors}"
+      Rails.logger.info "[RedmineReminder]   - perform_deliveries: #{ActionMailer::Base.perform_deliveries}"
+      
+      # 直接通过 SMTP 发送
+      mail_message.deliver
+      
       Rails.logger.info "[RedmineReminder] ====== TEST EMAIL RESPONSE ======"
-      Rails.logger.info "[RedmineReminder] Mailer Result Class: #{mailer_result.class}"
-      Rails.logger.info "[RedmineReminder] Mailer Result: #{mailer_result.inspect}"
-      Rails.logger.info "[RedmineReminder] From: #{mailer_result.from}"
-      Rails.logger.info "[RedmineReminder] To: #{mailer_result.to}"
-      Rails.logger.info "[RedmineReminder] Subject: #{mailer_result.subject}"
-      Rails.logger.info "[RedmineReminder] Message ID: #{mailer_result.message_id}"
+      Rails.logger.info "[RedmineReminder] Mailer Result Class: #{mail_message.class}"
+      Rails.logger.info "[RedmineReminder] From: #{mail_message.from.inspect}"
+      Rails.logger.info "[RedmineReminder] To: #{mail_message.to.inspect}"
+      Rails.logger.info "[RedmineReminder] Subject: #{mail_message.subject}"
+      Rails.logger.info "[RedmineReminder] Message ID: #{mail_message.message_id}"
       Rails.logger.info "[RedmineReminder] Test email sent successfully to #{User.current.mail}"
       Rails.logger.info "=========================================="
       
