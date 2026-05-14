@@ -12,103 +12,47 @@ function initProjectTree() {
   });
 }
 
-function getRowDepth($row) {
-  var padding = $row.css('padding-left');
-  return parseInt(padding) || 0;
-}
-
-function getRowProjectId($row) {
-  return $row.find('.project-checkbox').data('project-id');
-}
-
-function findChildRows($startRow) {
-  var $children = [];
-  var startDepth = getRowDepth($startRow);
-  var $nextRow = $startRow.next();
+function toggleDescendants(parentId, isChecked) {
+  var $childrenContainer = $('.project-children[data-parent-id="' + parentId + '"]');
+  if ($childrenContainer.length === 0) return;
   
-  while ($nextRow.length > 0) {
-    var nextDepth = getRowDepth($nextRow);
-    if (nextDepth > startDepth) {
-      $children.push($nextRow);
-      $nextRow = $nextRow.next();
-    } else {
-      break;
-    }
-  }
+  // Check/uncheck all checkboxes in this container
+  $childrenContainer.find('.project-checkbox').prop('checked', isChecked);
   
-  return $children;
-}
-
-function toggleDescendants(projectId, isChecked) {
-  var $parentRow = $('.project-row').filter(function() {
-    return $(this).find('.project-checkbox').data('project-id') == projectId;
-  });
-  
-  var $children = findChildRows($parentRow);
-  $children.forEach(function($child) {
-    $child.find('.project-checkbox').prop('checked', isChecked);
-    // Recursively handle nested children
-    var $checkboxes = $child.find('.project-checkbox[data-has-children="true"]');
-    $checkboxes.each(function() {
-      toggleDescendants($(this).data('project-id'), isChecked);
-    });
+  // Recursively handle nested children
+  $childrenContainer.find('.project-checkbox[data-has-children="true"]').each(function() {
+    toggleDescendants($(this).data('project-id'), isChecked);
   });
 }
 
 function toggleProjectChildren(projectId) {
-  var $parentRow = $('.project-row').filter(function() {
-    return $(this).find('.project-checkbox').data('project-id') == projectId;
-  });
+  var $toggle = $('.toggle-children[data-project-id="' + projectId + '"]');
+  var $childrenContainer = $('.project-children[data-parent-id="' + projectId + '"]');
   
-  var $toggle = $parentRow.find('.toggle-children');
-  var $children = findChildRows($parentRow);
+  if ($childrenContainer.length === 0) return;
   
   if ($toggle.hasClass('icon-collapsed')) {
     // Expand
     $toggle.removeClass('icon-collapsed').addClass('icon-expended');
-    $children.forEach(function($child) {
-      $child.show();
-      // Update toggle icons for children with children
-      var $childToggle = $child.find('.toggle-children');
-      if ($childToggle.length > 0 && $child.find('.project-checkbox').data('has-children')) {
-        // Keep as is (might need to check if it should be collapsed)
-      }
-    });
+    $childrenContainer.show();
   } else {
     // Collapse
     $toggle.removeClass('icon-expended').addClass('icon-collapsed');
-    // Hide all descendants recursively
-    $children.forEach(function($child) {
-      hideRowAndDescendants($child);
-    });
+    $childrenContainer.hide();
+    // Also collapse all nested children
+    $childrenContainer.find('.project-children').hide();
+    $childrenContainer.find('.toggle-children').removeClass('icon-expended').addClass('icon-collapsed');
   }
-}
-
-function hideRowAndDescendants($row) {
-  $row.hide();
-  var $childToggle = $row.find('.toggle-children');
-  if ($childToggle.length > 0) {
-    $childToggle.removeClass('icon-expended').addClass('icon-collapsed');
-  }
-  var $children = findChildRows($row);
-  $children.forEach(function($child) {
-    hideRowAndDescendants($child);
-  });
 }
 
 function expandAllProjects() {
   $('.toggle-children').removeClass('icon-collapsed').addClass('icon-expended');
-  $('.project-row').show();
+  $('.project-children').show();
 }
 
 function collapseAllProjects() {
   $('.toggle-children').removeClass('icon-expended').addClass('icon-collapsed');
-  $('.project-row').each(function() {
-    var padding = getRowDepth($(this));
-    if (padding > 0) {
-      $(this).hide();
-    }
-  });
+  $('.project-children').hide();
 }
 
 function initPreviewModal() {
