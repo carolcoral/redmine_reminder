@@ -2,7 +2,6 @@
   <%
     plugin_settings = Setting.plugin_redmine_reminder || {}
     selected_projects = plugin_settings['selected_projects'] || []
-    @projects ||= Project.where(status: Project::STATUS_ACTIVE).order(:lft)
   %>
   <%= form_tag reminders_settings_path, method: :post do %>
     <fieldset class="box">
@@ -83,23 +82,35 @@
 
         <div class="projects-tree" id="projects-tree">
           <%
-            def render_project_tree_with_indent(projects, selected_proj_ids, level_offset = 0)
+            def get_project_depth(project)
+              depth = 0
+              p = project
+              while p.parent_id.present?
+                depth += 1
+                p = p.parent
+              end
+              depth
+            end
+
+            def render_project_tree_with_indent(projects, selected_proj_ids)
               output = []
               projects.each do |project|
                 is_indent = project.parent_id.present?
                 indent_class = is_indent ? 'project-child' : ''
                 checkbox_id = "project_#{project.id}"
+                depth = get_project_depth(project)
 
                 children_html = ''
-                if project.children.any?
+                children = Project.where(parent_id: project.id, status: Project::STATUS_ACTIVE).order(:lft)
+                if children.any?
                   children_html = capture do
-                    render_project_tree_with_indent(project.children, selected_proj_ids, level_offset + 1)
+                    render_project_tree_with_indent(children.to_a, selected_proj_ids)
                   end
                 end
 
                 output << content_tag(:div,
-                  content_tag(:div, { class: indent_class, style: "margin-left: #{project.level * 20}px; display: #{project.parent_id.present? ? 'none' : 'block'};" }) do
-                  toggle_html = if project.children.any?
+                  content_tag(:div, { class: indent_class, style: "margin-left: #{depth * 20}px; display: #{project.parent_id.present? ? 'none' : 'block'};" }) do
+                  toggle_html = if children.any?
                       link_to_function('', '',
                         class: "toggle-children #{project.id} icon icon-collapsed",
                         onclick: "toggleProjectChildren(#{project.id}); return false;")
@@ -113,9 +124,9 @@
                         selected_proj_ids.include?(project.id),
                         id: checkbox_id,
                         class: 'project-checkbox',
-                        data: { parent_id: project.parent_id, has_children: project.children.any? }) +
+                        data: { parent_id: project.parent_id, has_children: children.any? }) +
 
-                      content_tag(:span, class: project.root? ? 'parent-project' : '') do
+                      content_tag(:span, class: project.parent_id.nil? ? 'parent-project' : '') do
                         h(project.name)
                       end
                     end
@@ -127,9 +138,11 @@
               end
               output.join.html_safe
             end
+
+            root_projects = Project.where(parent_id: nil, status: Project::STATUS_ACTIVE).order(:lft)
           %>
 
-          <%= render_project_tree_with_indent(@projects, selected_projects.map(&:to_i)) %>
+          <%= render_project_tree_with_indent(root_projects.to_a, selected_projects.map(&:to_i)) %>
         </div>
 
         <div style="margin-top: 10px;">
