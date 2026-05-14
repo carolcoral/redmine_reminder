@@ -61,6 +61,10 @@ function deselectAllProjects() {
   $('.project-checkbox').prop('checked', false);
 }
 
+function toggleAllProjects(checked) {
+  $('.project-checkbox').prop('checked', checked);
+}
+
 function initPreviewModal() {
   // Close modal when clicking outside
   $(document).on('click', '#preview-modal', function(e) {

@@ -35,7 +35,8 @@ require_relative 'lib/redmine_reminder/scheduler'
 
 class RedmineReminder::SchedulerJob
   def self.perform_now
-    return unless ReminderSetting.setting.enabled?
+    plugin_settings = Setting.plugin_redmine_reminder || {}
+    return unless plugin_settings['plugin_enabled'] == '1' || plugin_settings['plugin_enabled'] == true
     RedmineReminder::Scheduler.new.run
   end
 end

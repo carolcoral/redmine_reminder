@@ -5,7 +5,23 @@
   %>
   <%= form_tag reminders_settings_path, method: :post do %>
 
-    <fieldset class="box">
+    <%# Main Enable Switch %>
+    <div class="main-switch-container">
+      <div class="main-switch">
+        <label class="switch-label">
+          <%= check_box_tag 'reminder_setting[plugin_enabled]', '1',
+                plugin_settings['plugin_enabled'] == '1' || plugin_settings['plugin_enabled'] == true,
+                class: 'main-switch-checkbox' %>
+          <span class="switch-slider"></span>
+        </label>
+        <span class="switch-text">
+          <%= l(:reminder_settings_main_enable) %>
+        </span>
+      </div>
+      <p class="switch-desc"><%= l(:reminder_settings_main_enable_desc) %></p>
+    </div>
+
+    <fieldset class="box settings-section">
       <legend><%= l(:reminder_settings_basic) %></legend>
       <table class="settings-table">
         <tbody>
@@ -41,29 +57,38 @@
               <span class="field-desc"><%= l(:reminder_settings_frequency_info) %></span>
             </td>
           </tr>
-          <tr>
-            <th></th>
-            <td>
-              <label class="block">
-                <%= check_box_tag 'reminder_setting[enabled]', '1',
-                      plugin_settings['enabled'] == '1' || plugin_settings['enabled'] == true %>
-                <%= l(:reminder_settings_enabled) %>
-              </label>
-            </td>
-          </tr>
         </tbody>
       </table>
     </fieldset>
 
-    <fieldset class="box">
+    <%# IP Whitelist Section %>
+    <fieldset class="box settings-section">
+      <legend><%= l(:reminder_settings_ip_whitelist) %></legend>
+      <p class="section-desc"><%= l(:reminder_settings_ip_whitelist_desc) %></p>
+      <div class="ip-whitelist-container">
+        <%= text_area_tag 'reminder_setting[ip_whitelist]',
+              plugin_settings['ip_whitelist'] || '',
+              rows: 4,
+              placeholder: '192.168.1.1\n10.0.0.0/24\n127.0.0.1',
+              class: 'ip-whitelist-input' %>
+        <div class="ip-hint">
+          <%= l(:reminder_settings_ip_whitelist_hint) %>
+        </div>
+      </div>
+    </fieldset>
+
+    <fieldset class="box settings-section">
       <legend><%= l(:reminder_settings_projects) %></legend>
       <div class="project-selector">
         <div class="contextual">
-          <%= link_to_function l(:reminder_settings_expand_all), "expandAllProjects();", class: 'icon icon-expanded' %>
-          <%= link_to_function l(:reminder_settings_collapse_all), "collapseAllProjects();", class: 'icon icon-collapsed' %>
+          <a href="#" onclick="expandAllProjects(); return false;" class="icon icon-expended" title="<%= l(:reminder_settings_expand_all) %>"></a>
+          <a href="#" onclick="collapseAllProjects(); return false;" class="icon icon-collapsed" title="<%= l(:reminder_settings_collapse_all) %>"></a>
           <span class="separator">|</span>
-          <%= link_to_function l(:reminder_settings_select_all), "selectAllProjects();", class: 'icon icon-checked' %>
-          <%= link_to_function l(:reminder_settings_deselect_all), "deselectAllProjects();", class: 'icon icon-unchecked' %>
+          <label style="display: inline-flex; align-items: center; vertical-align: middle; cursor: pointer;">
+            <%= check_box_tag 'select_all_projects', '1', false, 
+                  onclick: 'toggleAllProjects(this.checked);',
+                  title: l(:reminder_settings_select_all) %>
+          </label>
         </div>
 
         <div class="projects-tree" id="projects-tree">
@@ -130,27 +155,72 @@
       </div>
     </fieldset>
 
-    <fieldset class="box">
+    <fieldset class="box settings-section">
       <legend><%= l(:reminder_settings_email_template) %></legend>
 
       <div class="template-placeholders">
         <h4><%= l(:reminder_settings_available_placeholders) %></h4>
-        <div class="placeholders-list">
-          <div class="placeholder-item"><code>{{user_name}}</code> - <span><%= l(:reminder_placeholder_user_name) %></span></div>
-          <div class="placeholder-item"><code>{{user_email}}</code> - <span><%= l(:reminder_placeholder_user_email) %></span></div>
-          <div class="placeholder-item"><code>{{project_name}}</code> - <span><%= l(:reminder_placeholder_project_name) %></span></div>
-          <div class="placeholder-item"><code>{{project_url}}</code> - <span><%= l(:reminder_placeholder_project_url) %></span></div>
-          <div class="placeholder-item"><code>{{issue_id}}</code> - <span><%= l(:reminder_placeholder_issue_id) %></span></div>
-          <div class="placeholder-item"><code>{{issue_name}}</code> - <span><%= l(:reminder_placeholder_issue_name) %></span></div>
-          <div class="placeholder-item"><code>{{due_date}}</code> - <span><%= l(:reminder_placeholder_due_date) %></span></div>
-          <div class="placeholder-item"><code>{{status}}</code> - <span><%= l(:reminder_placeholder_status) %></span></div>
-          <div class="placeholder-item"><code>{{priority}}</code> - <span><%= l(:reminder_placeholder_priority) %></span></div>
-          <div class="placeholder-item"><code>{{assigned_to}}</code> - <span><%= l(:reminder_placeholder_assigned_to) %></span></div>
-          <div class="placeholder-item"><code>{{tracker}}</code> - <span><%= l(:reminder_placeholder_tracker) %></span></div>
-          <div class="placeholder-item"><code>{{description}}</code> - <span><%= l(:reminder_placeholder_description) %></span></div>
-          <div class="placeholder-item"><code>{{overdue_days}}</code> - <span><%= l(:reminder_placeholder_overdue_days) %></span></div>
-          <div class="placeholder-item"><code>{{issue_url}}</code> - <span><%= l(:reminder_placeholder_issue_url) %></span></div>
-          <div class="placeholder-item"><code>{{#each tasks}}...{{/each}}</code> - <span><%= l(:reminder_placeholder_each_tasks) %></span></div>
+        <div class="placeholders-grid">
+          <div class="placeholder-card">
+            <code>{{user_name}}</code>
+            <p class="placeholder-desc"><%= l(:reminder_placeholder_user_name) %></p>
+          </div>
+          <div class="placeholder-card">
+            <code>{{user_email}}</code>
+            <p class="placeholder-desc"><%= l(:reminder_placeholder_user_email) %></p>
+          </div>
+          <div class="placeholder-card">
+            <code>{{project_name}}</code>
+            <p class="placeholder-desc"><%= l(:reminder_placeholder_project_name) %></p>
+          </div>
+          <div class="placeholder-card">
+            <code>{{project_url}}</code>
+            <p class="placeholder-desc"><%= l(:reminder_placeholder_project_url) %></p>
+          </div>
+          <div class="placeholder-card">
+            <code>{{issue_id}}</code>
+            <p class="placeholder-desc"><%= l(:reminder_placeholder_issue_id) %></p>
+          </div>
+          <div class="placeholder-card">
+            <code>{{issue_name}}</code>
+            <p class="placeholder-desc"><%= l(:reminder_placeholder_issue_name) %></p>
+          </div>
+          <div class="placeholder-card">
+            <code>{{due_date}}</code>
+            <p class="placeholder-desc"><%= l(:reminder_placeholder_due_date) %></p>
+          </div>
+          <div class="placeholder-card">
+            <code>{{status}}</code>
+            <p class="placeholder-desc"><%= l(:reminder_placeholder_status) %></p>
+          </div>
+          <div class="placeholder-card">
+            <code>{{priority}}</code>
+            <p class="placeholder-desc"><%= l(:reminder_placeholder_priority) %></p>
+          </div>
+          <div class="placeholder-card">
+            <code>{{assigned_to}}</code>
+            <p class="placeholder-desc"><%= l(:reminder_placeholder_assigned_to) %></p>
+          </div>
+          <div class="placeholder-card">
+            <code>{{tracker}}</code>
+            <p class="placeholder-desc"><%= l(:reminder_placeholder_tracker) %></p>
+          </div>
+          <div class="placeholder-card">
+            <code>{{description}}</code>
+            <p class="placeholder-desc"><%= l(:reminder_placeholder_description) %></p>
+          </div>
+          <div class="placeholder-card">
+            <code>{{overdue_days}}</code>
+            <p class="placeholder-desc"><%= l(:reminder_placeholder_overdue_days) %></p>
+          </div>
+          <div class="placeholder-card">
+            <code>{{issue_url}}</code>
+            <p class="placeholder-desc"><%= l(:reminder_placeholder_issue_url) %></p>
+          </div>
+          <div class="placeholder-card placeholder-card-wide">
+            <code>{{#each tasks}}...{{/each}}</code>
+            <p class="placeholder-desc"><%= l(:reminder_placeholder_each_tasks) %></p>
+          </div>
         </div>
       </div>
 
@@ -175,7 +245,7 @@
       </div>
     </fieldset>
 
-    <div style="margin-top: 15px;">
+    <div style="margin-top: 15px; text-align: center;">
       <%= submit_tag l(:button_save), class: 'button-small' %>
       <%= link_to l(:reminder_settings_test_email),
             reminders_test_email_path,
@@ -201,28 +271,133 @@
 <style>
 .reminder-settings {
   max-width: 900px;
+  margin: 0 auto;
+  padding: 20px;
 }
-.reminder-settings table.settings-table {
+
+/* Main Switch */
+.main-switch-container {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  padding: 20px 25px;
+  margin-bottom: 20px;
+  text-align: center;
+}
+.main-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+}
+.switch-label {
+  position: relative;
+  display: inline-block;
+  width: 56px;
+  height: 28px;
+}
+.main-switch-checkbox {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.switch-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: .3s;
+  border-radius: 28px;
+}
+.switch-slider:before {
+  position: absolute;
+  content: "";
+  height: 22px;
+  width: 22px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: .3s;
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+.main-switch-checkbox:checked + .switch-slider {
+  background-color: #259e56;
+}
+.main-switch-checkbox:checked + .switch-slider:before {
+  transform: translateX(28px);
+}
+.switch-text {
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+}
+.switch-desc {
+  margin: 10px 0 0;
+  color: #6c757d;
+  font-size: 13px;
+}
+
+/* Settings Sections */
+.settings-section {
+  margin-bottom: 20px;
+}
+.settings-section table.settings-table {
   width: 100%;
 }
-.reminder-settings table.settings-table th {
+.settings-section table.settings-table th {
   text-align: left;
   padding: 8px;
   font-weight: normal;
 }
-.reminder-settings table.settings-table td {
+.settings-section table.settings-table td {
   padding: 8px;
 }
-.reminder-settings .field-desc {
+.settings-section .field-desc {
   display: block;
   color: #999;
   font-size: 12px;
   margin-top: 4px;
 }
-.reminder-settings input[type="number"],
-.reminder-settings input[type="text"] {
+.settings-section input[type="number"],
+.settings-section input[type="text"] {
   padding: 4px 6px;
 }
+
+/* IP Whitelist */
+.section-desc {
+  color: #666;
+  font-size: 13px;
+  margin-bottom: 12px;
+}
+.ip-whitelist-container {
+  margin-top: 10px;
+}
+.ip-whitelist-input {
+  width: 100%;
+  font-family: 'Consolas', 'Monaco', monospace;
+  font-size: 13px;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  resize: vertical;
+  background: #fafafa;
+}
+.ip-whitelist-input:focus {
+  outline: none;
+  border-color: #259e56;
+  box-shadow: 0 0 0 2px rgba(37, 158, 86, 0.1);
+}
+.ip-hint {
+  margin-top: 8px;
+  font-size: 12px;
+  color: #888;
+  font-style: italic;
+}
+
+/* Project Selector */
 .project-selector {
   margin-top: 10px;
 }
@@ -233,6 +408,7 @@
   background: #fafafa;
   max-height: 300px;
   overflow-y: auto;
+  border-radius: 4px;
 }
 .project-item {
   padding: 4px 0;
@@ -249,31 +425,53 @@
   width: 20px;
   cursor: pointer;
 }
+
+/* Template Placeholders - Grid Layout */
 .template-placeholders {
-  margin-bottom: 15px;
+  margin-bottom: 20px;
 }
 .template-placeholders h4 {
-  margin-bottom: 10px;
-}
-.placeholders-list {
-  background: #f8f8f8;
-  padding: 10px;
-  border-radius: 3px;
-}
-.placeholder-item {
-  display: inline-block;
-  margin: 4px 8px 4px 0;
-  padding: 4px 8px;
-  background: white;
-  border: 1px solid #ddd;
-  border-radius: 3px;
-}
-.placeholder-item code {
-  background: #e8e8e8;
-  padding: 2px 6px;
-  border-radius: 3px;
+  margin-bottom: 15px;
   color: #333;
+  font-size: 14px;
 }
+.placeholders-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+}
+.placeholder-card {
+  background: #fff;
+  border: 1px solid #e8e8e8;
+  border-radius: 6px;
+  padding: 12px 15px;
+  transition: all 0.2s ease;
+}
+.placeholder-card:hover {
+  border-color: #259e56;
+  box-shadow: 0 2px 8px rgba(37, 158, 86, 0.1);
+}
+.placeholder-card code {
+  display: block;
+  background: #f5f5f5;
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-size: 13px;
+  color: #259e56;
+  font-weight: 500;
+  margin-bottom: 8px;
+  border: 1px solid #eee;
+}
+.placeholder-desc {
+  margin: 0;
+  font-size: 12px;
+  color: #666;
+  line-height: 1.4;
+}
+.placeholder-card-wide {
+  grid-column: span 2;
+}
+
 .template-editor {
   margin-top: 10px;
 }

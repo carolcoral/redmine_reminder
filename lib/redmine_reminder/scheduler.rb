@@ -1,12 +1,14 @@
 module RedmineReminder
   class Scheduler
-    def initialize
+    def initialize(request_ip = nil)
       @setting = ReminderSetting.setting
       @executed_projects = Set.new
+      @request_ip = request_ip
     end
 
     def run
       return unless @setting.enabled?
+      return unless check_ip_whitelist
 
       schedule_hour, schedule_minute = @setting.schedule_time_minutes
       now = Time.current
@@ -154,6 +156,50 @@ module RedmineReminder
 
     def issue_url(issue)
       "#{Setting.protocol}://#{Setting.host_name}/issues/#{issue.id}"
+    end
+
+    def check_ip_whitelist
+      plugin_settings = Setting.plugin_redmine_reminder || {}
+      whitelist = plugin_settings['ip_whitelist'].to_s.strip
+
+      if whitelist.blank?
+        return true
+      end
+
+      return true unless @request_ip.present?
+
+      whitelist_ips = whitelist.split("\n").map(&:strip).reject(&:blank?)
+      whitelist_ips.each do |entry|
+        if entry.include?('/')
+          return true if ip_in_cidr?(@request_ip, entry)
+        else
+          return true if @request_ip == entry
+        end
+      end
+
+      Rails.logger.warn "RedmineReminder: IP #{@request_ip} not in whitelist, skipping reminder"
+      false
+    end
+
+    def ip_in_cidr?(ip, cidr)
+      return false unless ip.present? && cidr.include?('/')
+
+      begin
+        ip_parts = ip.split('.').map(&:to_i)
+        return false unless ip_parts.length == 4
+
+        mask_bits = cidr.split('/').last.to_i
+        network_ip = cidr.split('/').first
+
+        ip_int = ip_parts.reduce(0) { |sum, part| (sum << 8) + part }
+        network_parts = network_ip.split('.').map(&:to_i)
+        network_int = network_parts.reduce(0) { |sum, part| (sum << 8) + part }
+
+        mask = (0xFFFFFFFF << (32 - mask_bits)) & 0xFFFFFFFF
+        (ip_int & mask) == (network_int & mask)
+      rescue
+        false
+      end
     end
   end
 end
