@@ -9,12 +9,15 @@ Redmine::Plugin.register :redmine_reminder do
   permission :manage_reminder_settings, {}
 
   settings default: {
-    enabled: false,
-    remind_before_days: 3,
-    schedule_time: '09:00',
-    frequency_limit: 7,
-    selected_projects: []
+    'enabled' => false,
+    'remind_before_days' => 3,
+    'schedule_time' => '09:00',
+    'frequency_limit' => 7,
+    'selected_projects' => []
   }, partial: 'settings/reminders', defaults: :reminders
+
+  locales_for_plugin = Dir.glob(File.join(File.dirname(__FILE__), 'langs', '*.yml'))
+  Rails.application.config.i18n.load_path += locales_for_plugin
 
   Rails.application.config.after_initialize do
     if defined?(Redmine::Scheduler)

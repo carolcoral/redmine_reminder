@@ -1,48 +1,44 @@
-{
-  "en": {
-    "reminder_settings_title": "Reminder Settings",
-    "reminder_settings_basic": "Basic Settings",
-    "reminder_settings_remind_days": "Remind Before (days)",
-    "reminder_settings_days_unit": "days",
-    "reminder_settings_remind_days_info": "Set how many days before due date to send reminder",
-    "reminder_settings_schedule_time": "Schedule Time",
-    "reminder_settings_schedule_time_info": "Daily time to send reminders (24-hour format)",
-    "reminder_settings_frequency_limit": "Sending Frequency",
-    "reminder_settings_frequency_info": "Maximum number of emails per minute (e.g., 25/min means 25 emails per minute)",
-    "reminder_settings_enabled": "Enable Reminder",
-    "reminder_settings_projects": "Select Projects",
-    "reminder_settings_expand_all": "Expand All",
-    "reminder_settings_collapse_all": "Collapse All",
-    "reminder_settings_select_all": "Select All",
-    "reminder_settings_deselect_all": "Deselect All",
-    "reminder_settings_email_template": "Email Template",
-    "reminder_settings_available_placeholders": "Available Placeholders",
-    "reminder_settings_reset_template": "Reset to Default",
-    "reminder_settings_confirm_reset": "Are you sure you want to reset to default template?",
-    "reminder_settings_preview": "Preview",
-    "reminder_settings_preview_result": "Preview Result",
-    "reminder_settings_test_email": "Send Test Email",
-    "reminder_settings_template_reset": "Template has been reset to default.",
-    "reminder_placeholder_user_name": "Recipient name",
-    "reminder_placeholder_user_email": "Recipient email",
-    "reminder_placeholder_project_name": "Project name",
-    "reminder_placeholder_project_url": "Project URL",
-    "reminder_placeholder_issue_id": "Issue ID (e.g., #123)",
-    "reminder_placeholder_issue_name": "Issue subject",
-    "reminder_placeholder_due_date": "Due date",
-    "reminder_placeholder_status": "Issue status",
-    "reminder_placeholder_priority": "Issue priority",
-    "reminder_placeholder_assigned_to": "Assigned user",
-    "reminder_placeholder_tracker": "Tracker type",
-    "reminder_placeholder_description": "Issue description",
-    "reminder_placeholder_overdue_days": "Days overdue (negative if not overdue)",
-    "reminder_placeholder_issue_url": "Issue detail URL",
-    "reminder_placeholder_each_tasks": "Loop tag for multiple tasks (required)",
-    "reminder_email_subject": "[Reminder] Tasks need your attention - %{project_name}",
-    "notice_successful_update": "Settings were successfully updated.",
-    "reminder_test_email_sent": "Test email sent successfully",
-    "reminder_test_email_failed": "Failed to send test email",
-    "reminder_processing": "Processing reminder for project: %{project_name}",
-    "reminder_sent": "Reminder sent to %{count} users"
-  }
-}
+en:
+  reminder_settings_title: "Reminder Settings"
+  reminder_settings_basic: "Basic Settings"
+  reminder_settings_remind_days: "Remind Before (days)"
+  reminder_settings_days_unit: "days"
+  reminder_settings_remind_days_info: "Set how many days before due date to send reminder"
+  reminder_settings_schedule_time: "Schedule Time"
+  reminder_settings_schedule_time_info: "Daily time to send reminders (24-hour format)"
+  reminder_settings_frequency_limit: "Sending Frequency"
+  reminder_settings_frequency_info: "Maximum number of emails per minute"
+  reminder_settings_enabled: "Enable Reminder"
+  reminder_settings_projects: "Select Projects"
+  reminder_settings_expand_all: "Expand All"
+  reminder_settings_collapse_all: "Collapse All"
+  reminder_settings_select_all: "Select All"
+  reminder_settings_deselect_all: "Deselect All"
+  reminder_settings_email_template: "Email Template"
+  reminder_settings_available_placeholders: "Available Placeholders"
+  reminder_settings_reset_template: "Reset to Default"
+  reminder_settings_confirm_reset: "Are you sure you want to reset to default template?"
+  reminder_settings_preview: "Preview"
+  reminder_settings_preview_result: "Preview Result"
+  reminder_settings_test_email: "Send Test Email"
+  reminder_settings_template_reset: "Template has been reset to default."
+  reminder_placeholder_user_name: "Recipient name"
+  reminder_placeholder_user_email: "Recipient email"
+  reminder_placeholder_project_name: "Project name"
+  reminder_placeholder_project_url: "Project URL"
+  reminder_placeholder_issue_id: "Issue ID"
+  reminder_placeholder_issue_name: "Issue subject"
+  reminder_placeholder_due_date: "Due date"
+  reminder_placeholder_status: "Issue status"
+  reminder_placeholder_priority: "Issue priority"
+  reminder_placeholder_assigned_to: "Assigned user"
+  reminder_placeholder_tracker: "Tracker type"
+  reminder_placeholder_description: "Issue description"
+  reminder_placeholder_overdue_days: "Days overdue"
+  reminder_placeholder_issue_url: "Issue detail URL"
+  reminder_placeholder_each_tasks: "Loop tag for multiple tasks"
+  reminder_email_subject: "[Reminder] Tasks need your attention"
+  reminder_test_email_sent: "Test email sent successfully"
+  reminder_test_email_failed: "Failed to send test email"
+  reminder_processing: "Processing reminder for project"
+  reminder_sent: "Reminder sent to users"

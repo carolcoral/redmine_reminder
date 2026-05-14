@@ -1,10 +1,10 @@
 $(document).ready(function() {
-  initTimePicker();
+  initTimeInput();
   initProjectTree();
-  initTemplatePreview();
+  initPreviewModal();
 });
 
-function initTimePicker() {
+function initTimeInput() {
   var timeInput = document.getElementById('reminder_setting_schedule_time');
   if (timeInput && !timeInput.readOnly) {
     timeInput.addEventListener('input', function(e) {
@@ -22,6 +22,7 @@ function initTimePicker() {
 }
 
 function initProjectTree() {
+  // Handle parent checkbox change - toggle children
   $(document).on('change', '.project-checkbox[data-has-children="true"]', function() {
     var projectId = $(this).val();
     var isChecked = $(this).prop('checked');
@@ -32,15 +33,24 @@ function initProjectTree() {
 
 function toggleProjectChildren(projectId) {
   var $toggle = $('.toggle-children.' + projectId);
-  var $children = $('[data-parent-id="' + projectId + '"]');
 
-  if ($toggle.find('.icon').hasClass('icon-collapsed')) {
-    $toggle.find('.icon').removeClass('icon-collapsed').addClass('icon-expended');
-    $children.show();
+  if ($toggle.hasClass('icon-collapsed')) {
+    $toggle.removeClass('icon-collapsed').addClass('icon-expended');
+    $('[data-parent-id="' + projectId + '"]').show();
   } else {
-    $toggle.find('.icon').removeClass('icon-expended').addClass('icon-collapsed');
-    $children.hide();
+    $toggle.removeClass('icon-expended').addClass('icon-collapsed');
+    $('[data-parent-id="' + projectId + '"]').hide();
   }
+}
+
+function expandAllProjects() {
+  $('.toggle-children').removeClass('icon-collapsed').addClass('icon-expended');
+  $('.project-child').show();
+}
+
+function collapseAllProjects() {
+  $('.toggle-children').removeClass('icon-expended').addClass('icon-collapsed');
+  $('.project-child').hide();
 }
 
 function selectAllProjects() {
@@ -51,8 +61,13 @@ function deselectAllProjects() {
   $('.project-checkbox').prop('checked', false);
 }
 
-function initTemplatePreview() {
-  // Preview functionality is handled by previewTemplate function
+function initPreviewModal() {
+  // Close modal when clicking outside
+  $(document).on('click', '#preview-modal', function(e) {
+    if (e.target === this) {
+      $(this).hide();
+    }
+  });
 }
 
 function previewTemplate() {
@@ -69,11 +84,11 @@ function previewTemplate() {
       }
     },
     success: function(response) {
-      $('#preview-modal .modal-body').html(response);
-      $('#preview-modal').modal('show');
+      $('#preview-content').html(response);
+      $('#preview-modal').show();
     },
     error: function(xhr) {
-      alert('Preview failed: ' + (xhr.responseJSON && xhr.responseJSON.error || 'Unknown error'));
+      alert('Preview failed');
     }
   });
 }

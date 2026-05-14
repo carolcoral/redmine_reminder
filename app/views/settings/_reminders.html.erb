@@ -4,81 +4,67 @@
     selected_projects = plugin_settings['selected_projects'] || []
   %>
   <%= form_tag reminders_settings_path, method: :post do %>
+
     <fieldset class="box">
       <legend><%= l(:reminder_settings_basic) %></legend>
-
-      <div class="table-list">
-        <div class="form-group row">
-          <div class="col-xs-12 col-sm-6">
-            <label for="reminder_setting_remind_before_days">
-              <%= l(:reminder_settings_remind_days) %>
-              <span class="required">*</span>
-            </label>
-            <div class="input-group" style="max-width: 200px;">
+      <table class="settings-table">
+        <tbody>
+          <tr>
+            <th style="width: 30%;"><%= l(:reminder_settings_remind_days) %></th>
+            <td>
               <%= number_field_tag 'reminder_setting[remind_before_days]',
                     plugin_settings['remind_before_days'] || 3,
                     min: 1,
-                    class: 'form-control' %>
-              <span class="input-group-addon"><%= l(:reminder_settings_days_unit) %></span>
-            </div>
-            <em class="info"><%= l(:reminder_settings_remind_days_info) %></em>
-          </div>
-        </div>
-
-        <div class="form-group row">
-          <div class="col-xs-12 col-sm-6">
-            <label for="reminder_setting_schedule_time">
-              <%= l(:reminder_settings_schedule_time) %>
-              <span class="required">*</span>
-            </label>
-            <div class="input-group" style="max-width: 150px;">
+                    size: 5 %>
+              <em class="info"><%= l(:reminder_settings_days_unit) %></em>
+              <span class="field-desc"><%= l(:reminder_settings_remind_days_info) %></span>
+            </td>
+          </tr>
+          <tr>
+            <th><%= l(:reminder_settings_schedule_time) %></th>
+            <td>
               <%= text_field_tag 'reminder_setting[schedule_time]',
                     plugin_settings['schedule_time'] || '09:00',
-                    class: 'form-control timepicker',
-                    placeholder: 'HH:MM',
-                    data: { provide: 'timepicker', 'time-minute-step' => 1 } %>
-              <span class="input-group-addon"><i class="icon-time"></i></span>
-            </div>
-            <em class="info"><%= l(:reminder_settings_schedule_time_info) %></em>
-          </div>
-        </div>
-
-        <div class="form-group row">
-          <div class="col-xs-12 col-sm-6">
-            <label for="reminder_setting_frequency_limit">
-              <%= l(:reminder_settings_frequency_limit) %>
-              <span class="required">*</span>
-            </label>
-            <div class="input-group" style="max-width: 200px;">
+                    size: 10 %>
+              <em class="info">HH:MM</em>
+              <span class="field-desc"><%= l(:reminder_settings_schedule_time_info) %></span>
+            </td>
+          </tr>
+          <tr>
+            <th><%= l(:reminder_settings_frequency_limit) %></th>
+            <td>
               <%= number_field_tag 'reminder_setting[frequency_limit]',
                     plugin_settings['frequency_limit'] || 7,
                     min: 1,
-                    class: 'form-control' %>
-              <span class="input-group-addon">/min</span>
-            </div>
-            <em class="info"><%= l(:reminder_settings_frequency_info) %></em>
-          </div>
-        </div>
-
-        <div class="form-group row">
-          <div class="col-xs-12 col-sm-6">
-            <label>
-              <%= check_box_tag 'reminder_setting[enabled]', '1',
-                    plugin_settings['enabled'] == '1' || plugin_settings['enabled'] == true %>
-              <%= l(:reminder_settings_enabled) %>
-            </label>
-          </div>
-        </div>
-      </div>
+                    size: 5 %>
+              <em class="info">/min</em>
+              <span class="field-desc"><%= l(:reminder_settings_frequency_info) %></span>
+            </td>
+          </tr>
+          <tr>
+            <th></th>
+            <td>
+              <label class="block">
+                <%= check_box_tag 'reminder_setting[enabled]', '1',
+                      plugin_settings['enabled'] == '1' || plugin_settings['enabled'] == true %>
+                <%= l(:reminder_settings_enabled) %>
+              </label>
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </fieldset>
 
     <fieldset class="box">
       <legend><%= l(:reminder_settings_projects) %></legend>
       <div class="project-selector">
-        <p class="contextual">
-          <%= link_to_function l(:reminder_settings_expand_all), "$('.toggle-children .icon').removeClass('icon-collapsed').addClass('icon-expended'); $('.project-child').show();", class: 'icon icon-expanded' %>
-          <%= link_to_function l(:reminder_settings_collapse_all), "$('.toggle-children .icon').removeClass('icon-expended').addClass('icon-collapsed'); $('.project-child').hide();", class: 'icon icon-collapsed' %>
-        </p>
+        <div class="contextual">
+          <%= link_to_function l(:reminder_settings_expand_all), "expandAllProjects();", class: 'icon icon-expanded' %>
+          <%= link_to_function l(:reminder_settings_collapse_all), "collapseAllProjects();", class: 'icon icon-collapsed' %>
+          <span class="separator">|</span>
+          <%= link_to_function l(:reminder_settings_select_all), "selectAllProjects();", class: 'icon icon-checked' %>
+          <%= link_to_function l(:reminder_settings_deselect_all), "deselectAllProjects();", class: 'icon icon-unchecked' %>
+        </div>
 
         <div class="projects-tree" id="projects-tree">
           <%
@@ -110,7 +96,7 @@
 
                 output << content_tag(:div,
                   content_tag(:div, { class: indent_class, style: "margin-left: #{depth * 20}px; display: #{project.parent_id.present? ? 'none' : 'block'};" }) do
-                  toggle_html = if children.any?
+                    toggle_html = if children.any?
                       link_to_function('', '',
                         class: "toggle-children #{project.id} icon icon-collapsed",
                         onclick: "toggleProjectChildren(#{project.id}); return false;")
@@ -125,10 +111,7 @@
                         id: checkbox_id,
                         class: 'project-checkbox',
                         data: { parent_id: project.parent_id, has_children: children.any? }) +
-
-                      content_tag(:span, class: project.parent_id.nil? ? 'parent-project' : '') do
-                        h(project.name)
-                      end
+                      ' ' + h(project.name)
                     end
 
                     toggle_html + label_html
@@ -144,15 +127,6 @@
 
           <%= render_project_tree_with_indent(root_projects.to_a, selected_projects.map(&:to_i)) %>
         </div>
-
-        <div style="margin-top: 10px;">
-          <%= link_to_function l(:reminder_settings_select_all),
-                "selectAllProjects();",
-                class: 'icon icon-checked' %>
-          <%= link_to_function l(:reminder_settings_deselect_all),
-                "deselectAllProjects();",
-                class: 'icon icon-unchecked' %>
-        </div>
       </div>
     </fieldset>
 
@@ -161,115 +135,63 @@
 
       <div class="template-placeholders">
         <h4><%= l(:reminder_settings_available_placeholders) %></h4>
-        <div class="placeholders-grid">
-          <div class="placeholder-item">
-            <code>{{user_name}}</code>
-            <span><%= l(:reminder_placeholder_user_name) %></span>
-          </div>
-          <div class="placeholder-item">
-            <code>{{user_email}}</code>
-            <span><%= l(:reminder_placeholder_user_email) %></span>
-          </div>
-          <div class="placeholder-item">
-            <code>{{project_name}}</code>
-            <span><%= l(:reminder_placeholder_project_name) %></span>
-          </div>
-          <div class="placeholder-item">
-            <code>{{project_url}}</code>
-            <span><%= l(:reminder_placeholder_project_url) %></span>
-          </div>
-          <div class="placeholder-item">
-            <code>{{issue_id}}</code>
-            <span><%= l(:reminder_placeholder_issue_id) %></span>
-          </div>
-          <div class="placeholder-item">
-            <code>{{issue_name}}</code>
-            <span><%= l(:reminder_placeholder_issue_name) %></span>
-          </div>
-          <div class="placeholder-item">
-            <code>{{due_date}}</code>
-            <span><%= l(:reminder_placeholder_due_date) %></span>
-          </div>
-          <div class="placeholder-item">
-            <code>{{status}}</code>
-            <span><%= l(:reminder_placeholder_status) %></span>
-          </div>
-          <div class="placeholder-item">
-            <code>{{priority}}</code>
-            <span><%= l(:reminder_placeholder_priority) %></span>
-          </div>
-          <div class="placeholder-item">
-            <code>{{assigned_to}}</code>
-            <span><%= l(:reminder_placeholder_assigned_to) %></span>
-          </div>
-          <div class="placeholder-item">
-            <code>{{tracker}}</code>
-            <span><%= l(:reminder_placeholder_tracker) %></span>
-          </div>
-          <div class="placeholder-item">
-            <code>{{description}}</code>
-            <span><%= l(:reminder_placeholder_description) %></span>
-          </div>
-          <div class="placeholder-item">
-            <code>{{overdue_days}}</code>
-            <span><%= l(:reminder_placeholder_overdue_days) %></span>
-          </div>
-          <div class="placeholder-item">
-            <code>{{issue_url}}</code>
-            <span><%= l(:reminder_placeholder_issue_url) %></span>
-          </div>
-          <div class="placeholder-item placeholder-each">
-            <code>{{#each tasks}}...{{/each}}</code>
-            <span><%= l(:reminder_placeholder_each_tasks) %></span>
-          </div>
+        <div class="placeholders-list">
+          <div class="placeholder-item"><code>{{user_name}}</code> - <span><%= l(:reminder_placeholder_user_name) %></span></div>
+          <div class="placeholder-item"><code>{{user_email}}</code> - <span><%= l(:reminder_placeholder_user_email) %></span></div>
+          <div class="placeholder-item"><code>{{project_name}}</code> - <span><%= l(:reminder_placeholder_project_name) %></span></div>
+          <div class="placeholder-item"><code>{{project_url}}</code> - <span><%= l(:reminder_placeholder_project_url) %></span></div>
+          <div class="placeholder-item"><code>{{issue_id}}</code> - <span><%= l(:reminder_placeholder_issue_id) %></span></div>
+          <div class="placeholder-item"><code>{{issue_name}}</code> - <span><%= l(:reminder_placeholder_issue_name) %></span></div>
+          <div class="placeholder-item"><code>{{due_date}}</code> - <span><%= l(:reminder_placeholder_due_date) %></span></div>
+          <div class="placeholder-item"><code>{{status}}</code> - <span><%= l(:reminder_placeholder_status) %></span></div>
+          <div class="placeholder-item"><code>{{priority}}</code> - <span><%= l(:reminder_placeholder_priority) %></span></div>
+          <div class="placeholder-item"><code>{{assigned_to}}</code> - <span><%= l(:reminder_placeholder_assigned_to) %></span></div>
+          <div class="placeholder-item"><code>{{tracker}}</code> - <span><%= l(:reminder_placeholder_tracker) %></span></div>
+          <div class="placeholder-item"><code>{{description}}</code> - <span><%= l(:reminder_placeholder_description) %></span></div>
+          <div class="placeholder-item"><code>{{overdue_days}}</code> - <span><%= l(:reminder_placeholder_overdue_days) %></span></div>
+          <div class="placeholder-item"><code>{{issue_url}}</code> - <span><%= l(:reminder_placeholder_issue_url) %></span></div>
+          <div class="placeholder-item"><code>{{#each tasks}}...{{/each}}</code> - <span><%= l(:reminder_placeholder_each_tasks) %></span></div>
         </div>
       </div>
 
       <div class="template-editor">
         <%= text_area_tag 'reminder_setting[email_template]',
               plugin_settings['email_template'] || ReminderSetting.default_template,
-              rows: 20,
-              class: 'wiki-edit form-control',
-              style: 'font-family: monospace;' %>
+              rows: 15,
+              class: 'wiki-edit',
+              style: 'width: 100%; font-family: monospace;' %>
         <%= wikitoolbar_for 'reminder_setting[email_template]' %>
       </div>
 
-      <div class="template-actions">
+      <div class="template-actions" style="margin-top: 10px;">
+        <%= link_to_function l(:reminder_settings_preview),
+              "previewTemplate();",
+              class: 'icon icon-preview' %>
         <%= link_to l(:reminder_settings_reset_template),
               reminders_reset_template_path,
               method: :post,
               class: 'icon icon-reload',
               data: { confirm: l(:reminder_settings_confirm_reset) } %>
-        <%= link_to_function l(:reminder_settings_preview),
-              "previewTemplate();",
-              class: 'icon icon-preview' %>
       </div>
     </fieldset>
 
-    <div class="box tabular">
-      <div class="form-actions">
-        <%= submit_tag l(:button_save), class: 'btn btn-primary' %>
-        <%= link_to l(:reminder_settings_test_email),
-              reminders_test_email_path,
-              method: :post,
-              class: 'btn btn-success' %>
-      </div>
+    <div style="margin-top: 15px;">
+      <%= submit_tag l(:button_save), class: 'button-small' %>
+      <%= link_to l(:reminder_settings_test_email),
+            reminders_test_email_path,
+            method: :post,
+            class: 'button-small' %>
     </div>
   <% end %>
 </div>
 
-<div class="modal fade" id="preview-modal" tabindex="-1" role="dialog">
-  <div class="modal-dialog modal-lg" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal">&times;</button>
-        <h4 class="modal-title"><%= l(:reminder_settings_preview) %></h4>
-      </div>
-      <div class="modal-body">
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-default" data-dismiss="modal"><%= l(:button_close) %></button>
-      </div>
+<div class="modal" id="preview-modal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000;">
+  <div style="background: white; margin: 50px auto; padding: 20px; max-width: 800px; border-radius: 4px; max-height: 80vh; overflow: auto;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+      <h3><%= l(:reminder_settings_preview) %></h3>
+      <a href="#" onclick="$('#preview-modal').hide(); return false;" style="font-size: 24px;">&times;</a>
+    </div>
+    <div id="preview-content" style="border: 1px solid #ddd; padding: 15px; background: #fafafa;">
     </div>
   </div>
 </div>
@@ -277,13 +199,85 @@
 <%= javascript_include_tag 'reminder_settings', plugin: 'redmine_reminder' %>
 
 <style>
-/* Timepicker fix */
-.timepicker {
-  padding: 4px;
+.reminder-settings {
+  max-width: 900px;
 }
-
-/* Ensure checkbox arrays don't send empty values */
-input[name="reminder_setting[selected_projects][]"][value=""] {
-  display: none;
+.reminder-settings table.settings-table {
+  width: 100%;
+}
+.reminder-settings table.settings-table th {
+  text-align: left;
+  padding: 8px;
+  font-weight: normal;
+}
+.reminder-settings table.settings-table td {
+  padding: 8px;
+}
+.reminder-settings .field-desc {
+  display: block;
+  color: #999;
+  font-size: 12px;
+  margin-top: 4px;
+}
+.reminder-settings input[type="number"],
+.reminder-settings input[type="text"] {
+  padding: 4px 6px;
+}
+.project-selector {
+  margin-top: 10px;
+}
+.projects-tree {
+  margin-top: 10px;
+  border: 1px solid #ddd;
+  padding: 10px;
+  background: #fafafa;
+  max-height: 300px;
+  overflow-y: auto;
+}
+.project-item {
+  padding: 4px 0;
+}
+.project-child {
+  padding-left: 0;
+}
+.spacer {
+  display: inline-block;
+  width: 20px;
+}
+.toggle-children {
+  display: inline-block;
+  width: 20px;
+  cursor: pointer;
+}
+.template-placeholders {
+  margin-bottom: 15px;
+}
+.template-placeholders h4 {
+  margin-bottom: 10px;
+}
+.placeholders-list {
+  background: #f8f8f8;
+  padding: 10px;
+  border-radius: 3px;
+}
+.placeholder-item {
+  display: inline-block;
+  margin: 4px 8px 4px 0;
+  padding: 4px 8px;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 3px;
+}
+.placeholder-item code {
+  background: #e8e8e8;
+  padding: 2px 6px;
+  border-radius: 3px;
+  color: #333;
+}
+.template-editor {
+  margin-top: 10px;
+}
+.template-editor textarea {
+  resize: vertical;
 }
 </style>
