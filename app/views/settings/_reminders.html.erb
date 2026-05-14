@@ -92,58 +92,69 @@
 
         <div class="projects-tree" id="projects-tree">
           <%
-            def build_project_tree_data(projects, parent_id = nil)
-              projects.select { |p| p.parent_id == parent_id }.map do |project|
-                {
-                  project: project,
-                  children: build_project_tree_data(projects, project.id)
-                }
-              end
-            end
-
-            def render_project_tree(nodes, selected_proj_ids)
-              nodes.map do |node|
-                project = node[:project]
-                children = node[:children]
-                has_children = children.any?
-                checkbox_id = "project_#{project.id}"
-
-                toggle_html = if has_children
-                  link_to_function('', '',
-                    class: "toggle-children icon icon-collapsed",
-                    onclick: "toggleProjectChildren(#{project.id}); return false;",
-                    data: { project_id: project.id })
-                else
-                  content_tag(:span, '', class: 'spacer')
-                end
-
-                label_html = label_tag(checkbox_id, class: 'project-label') do
-                  check_box_tag('reminder_setting[selected_projects][]',
-                    project.id,
-                    selected_proj_ids.include?(project.id),
-                    id: checkbox_id,
-                    class: 'project-checkbox',
-                    data: { project_id: project.id, has_children: has_children }) +
-                  ' ' + h(project.name)
-                end
-
-                row_html = content_tag(:div, toggle_html + label_html,
-                  class: 'project-row',
-                  data: { project_id: project.id })
-
-                children_html = render_project_tree(children, selected_proj_ids)
-                row_html + children_html
-              end.join.html_safe
-            end
-
+            # 获取所有项目并按lft排序
             all_projects = Project.where(status: Project::STATUS_ACTIVE).order(:lft).to_a
-            tree_data = build_project_tree_data(all_projects, nil)
+            
+            # 计算每个项目的层级深度（顶级项目depth=0）
+            def get_project_depth(project, all_projects)
+              depth = 0
+              p = project
+              while p.parent_id.present?
+                depth += 1
+                p = all_projects.find { |ap| ap.id == p.parent_id }
+                break unless p
+              end
+              depth
+            end
+            
+            # 标记每个项目是否有子项目
+            project_ids_with_children = all_projects.select { |p| p.parent_id.nil? || all_projects.any? { |ap| ap.parent_id == p.id } }.map(&:id).to_set
+            
+            def has_children(project_id, all_projects)
+              all_projects.any? { |p| p.parent_id == project_id }
+            end
+            
+            def render_project_row(project, depth, selected_proj_ids, all_projects)
+              children = all_projects.select { |p| p.parent_id == project.id }.sort_by(&:lft)
+              has_kids = children.any?
+              checkbox_id = "project_#{project.id}"
+              
+              toggle_html = if has_kids
+                link_to_function('', '',
+                  class: "toggle-children icon icon-collapsed",
+                  onclick: "toggleProjectChildren(#{project.id}); return false;",
+                  data: { project_id: project.id })
+              else
+                content_tag(:span, '', class: 'spacer')
+              end
+              
+              label_html = label_tag(checkbox_id, class: 'project-label') do
+                check_box_tag('reminder_setting[selected_projects][]',
+                  project.id,
+                  selected_proj_ids.include?(project.id),
+                  id: checkbox_id,
+                  class: 'project-checkbox',
+                  data: { project_id: project.id, has_children: has_kids }) +
+                ' ' + h(project.name)
+              end
+              
+              row_html = content_tag(:div, toggle_html + label_html,
+                class: 'project-row',
+                style: "padding-left: #{depth * 20}px;",
+                data: { project_id: project.id })
+              
+              # 递归渲染子项目
+              children_html = children.map { |child| render_project_row(child, depth + 1, selected_proj_ids, all_projects) }.join.html_safe
+              
+              row_html + children_html
+            end
+            
+            # 获取顶级项目（没有父项目的）
+            root_projects = all_projects.select { |p| p.parent_id.nil? }.sort_by(&:lft)
           %>
 
-          <% if tree_data.any? %>
-            <div class="project-children" style="padding-left: 0;">
-              <%= render_project_tree(tree_data, selected_projects.map(&:to_i)) %>
-            </div>
+          <% if root_projects.any? %>
+            <%= root_projects.map { |root| render_project_row(root, 0, selected_projects.map(&:to_i), all_projects) }.join.html_safe %>
           <% else %>
             <p class="no-projects"><%= l(:reminder_settings_no_projects) %></p>
           <% end %>

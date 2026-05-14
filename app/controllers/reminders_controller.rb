@@ -102,11 +102,12 @@ class RemindersController < ApplicationController
       :schedule_time,
       :frequency_limit,
       :email_template,
-      :enabled,
+      :plugin_enabled,
+      :ip_whitelist,
       selected_projects: []
     ).to_h
 
-    permitted_params['enabled'] = permitted_params['enabled'] == '1' || permitted_params['enabled'] == true
+    permitted_params['plugin_enabled'] = permitted_params['plugin_enabled'] == '1' || permitted_params['plugin_enabled'] == true
     permitted_params['selected_projects'] = (permitted_params['selected_projects'] || []).reject(&:blank?).map(&:to_s)
     permitted_params['remind_before_days'] = permitted_params['remind_before_days'].to_i
     permitted_params['frequency_limit'] = permitted_params['frequency_limit'].to_i

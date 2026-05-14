@@ -12,58 +12,106 @@ function initProjectTree() {
   });
 }
 
-function toggleDescendants(parentId, isChecked) {
-  // Find direct children container by looking for the next sibling .project-children
-  var $parentRow = $('.project-row[data-project-id="' + parentId + '"]');
-  var $childrenContainer = $parentRow.next('.project-children');
+function getRowDepth($row) {
+  var padding = $row.css('padding-left');
+  return parseInt(padding) || 0;
+}
+
+function getRowProjectId($row) {
+  return $row.find('.project-checkbox').data('project-id');
+}
+
+function findChildRows($startRow) {
+  var $children = [];
+  var startDepth = getRowDepth($startRow);
+  var $nextRow = $startRow.next();
   
-  if ($childrenContainer.length === 0) {
-    // Try finding children within the same parent container
-    $childrenContainer = $parentRow.closest('.project-children').find('.project-row[data-project-id="' + parentId + '"]').next('.project-children');
+  while ($nextRow.length > 0) {
+    var nextDepth = getRowDepth($nextRow);
+    if (nextDepth > startDepth) {
+      $children.push($nextRow);
+      $nextRow = $nextRow.next();
+    } else {
+      break;
+    }
   }
   
-  $childrenContainer.find('.project-checkbox').prop('checked', isChecked);
-  // Also recursively handle nested children
-  $childrenContainer.find('.project-checkbox[data-has-children="true"]').each(function() {
-    toggleDescendants($(this).data('project-id'), isChecked);
+  return $children;
+}
+
+function toggleDescendants(projectId, isChecked) {
+  var $parentRow = $('.project-row').filter(function() {
+    return $(this).find('.project-checkbox').data('project-id') == projectId;
+  });
+  
+  var $children = findChildRows($parentRow);
+  $children.forEach(function($child) {
+    $child.find('.project-checkbox').prop('checked', isChecked);
+    // Recursively handle nested children
+    var $checkboxes = $child.find('.project-checkbox[data-has-children="true"]');
+    $checkboxes.each(function() {
+      toggleDescendants($(this).data('project-id'), isChecked);
+    });
   });
 }
 
 function toggleProjectChildren(projectId) {
-  var $toggle = $('.toggle-children[data-project-id="' + projectId + '"]');
-  var $parentRow = $toggle.closest('.project-row');
-  var $childrenContainer = $parentRow.next('.project-children');
-
-  if ($childrenContainer.length > 0 && $childrenContainer.is(':hidden')) {
+  var $parentRow = $('.project-row').filter(function() {
+    return $(this).find('.project-checkbox').data('project-id') == projectId;
+  });
+  
+  var $toggle = $parentRow.find('.toggle-children');
+  var $children = findChildRows($parentRow);
+  
+  if ($toggle.hasClass('icon-collapsed')) {
+    // Expand
     $toggle.removeClass('icon-collapsed').addClass('icon-expended');
-    $childrenContainer.show();
-  } else if ($childrenContainer.length > 0) {
+    $children.forEach(function($child) {
+      $child.show();
+      // Update toggle icons for children with children
+      var $childToggle = $child.find('.toggle-children');
+      if ($childToggle.length > 0 && $child.find('.project-checkbox').data('has-children')) {
+        // Keep as is (might need to check if it should be collapsed)
+      }
+    });
+  } else {
+    // Collapse
     $toggle.removeClass('icon-expended').addClass('icon-collapsed');
-    hideAllDescendants($childrenContainer);
+    // Hide all descendants recursively
+    $children.forEach(function($child) {
+      hideRowAndDescendants($child);
+    });
   }
 }
 
-function hideAllDescendants($container) {
-  $container.hide();
-  $container.find('.toggle-children').removeClass('icon-expended').addClass('icon-collapsed');
-  $container.find('.project-children').each(function() {
-    hideAllDescendants($(this));
+function hideRowAndDescendants($row) {
+  $row.hide();
+  var $childToggle = $row.find('.toggle-children');
+  if ($childToggle.length > 0) {
+    $childToggle.removeClass('icon-expended').addClass('icon-collapsed');
+  }
+  var $children = findChildRows($row);
+  $children.forEach(function($child) {
+    hideRowAndDescendants($child);
   });
 }
 
 function expandAllProjects() {
   $('.toggle-children').removeClass('icon-collapsed').addClass('icon-expended');
-  $('.projects-tree .project-children').show();
+  $('.project-row').show();
 }
 
 function collapseAllProjects() {
   $('.toggle-children').removeClass('icon-expended').addClass('icon-collapsed');
-  $('.projects-tree > .project-children').find('.project-children').hide();
-  $('.projects-tree > .project-children > .project-row + .project-children').hide();
+  $('.project-row').each(function() {
+    var padding = getRowDepth($(this));
+    if (padding > 0) {
+      $(this).hide();
+    }
+  });
 }
 
 function initPreviewModal() {
-  // Close modal when clicking outside
   $(document).on('click', '#preview-modal', function(e) {
     if (e.target === this) {
       $(this).hide();
