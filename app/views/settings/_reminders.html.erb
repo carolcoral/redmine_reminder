@@ -13,7 +13,7 @@
               options_for_select([
                 [l(:reminder_settings_enabled), '1'],
                 [l(:reminder_settings_disabled), '0']
-              ], plugin_settings['plugin_enabled'] == '0' ? '0' : '1'),
+              ], (plugin_settings['plugin_enabled'] == '0' || plugin_settings['plugin_enabled'] == false) ? '0' : '1'),
               class: 'main-enable-select',
               style: 'height: 32px; line-height: 32px; padding: 0 8px;' %>
       </div>
