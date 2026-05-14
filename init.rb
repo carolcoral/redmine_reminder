@@ -1,5 +1,5 @@
 Redmine::Plugin.register :redmine_reminder do
-  name 'Reminder Plugin'
+  name 'Redmine Reminder'
   author 'carolcoral'
   author_url 'https://github.com/carolcoral'
   description 'A plugin for sending reminder emails for upcoming and overdue tasks'

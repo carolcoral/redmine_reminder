@@ -93,8 +93,8 @@
                 end
 
                 output << content_tag(:div,
-                  content_tag(:div, class: indent_class, style: "margin-left: #{project.level * 20}px; display: #{project.parent_id.present? ? 'none' : 'block'};" do
-                    toggle_html = if project.children.any?
+                  content_tag(:div, { class: indent_class, style: "margin-left: #{project.level * 20}px; display: #{project.parent_id.present? ? 'none' : 'block'};" }) do
+                  toggle_html = if project.children.any?
                       link_to_function('', '',
                         class: "toggle-children #{project.id} icon icon-collapsed",
                         onclick: "toggleProjectChildren(#{project.id}); return false;")
