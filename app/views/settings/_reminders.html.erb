@@ -7,62 +7,63 @@
 
     <%# Main Enable Switch %>
     <div class="main-enable-container">
-      <table class="settings-table">
-        <tbody>
-          <tr>
-            <th style="width: 30%;"><%= l(:reminder_settings_main_enable) %></th>
-            <td>
-              <%= select_tag 'reminder_setting[plugin_enabled]',
-                    options_for_select([
-                      [l(:reminder_settings_enabled), '1'],
-                      [l(:reminder_settings_disabled), '0']
-                    ], plugin_settings['plugin_enabled'] == '0' ? '0' : '1'),
-                    class: 'main-enable-select' %>
-              <span class="field-desc"><%= l(:reminder_settings_main_enable_desc) %></span>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+      <div class="enable-row">
+        <label class="enable-label"><%= l(:reminder_settings_main_enable) %>:</label>
+        <%= select_tag 'reminder_setting[plugin_enabled]',
+              options_for_select([
+                [l(:reminder_settings_enabled), '1'],
+                [l(:reminder_settings_disabled), '0']
+              ], plugin_settings['plugin_enabled'] == '0' ? '0' : '1'),
+              class: 'main-enable-select' %>
+      </div>
+      <p class="enable-desc"><%= l(:reminder_settings_main_enable_desc) %></p>
     </div>
 
     <fieldset class="box settings-section">
       <legend><%= l(:reminder_settings_basic) %></legend>
-      <table class="settings-table">
-        <tbody>
-          <tr>
-            <th style="width: 30%;"><%= l(:reminder_settings_remind_days) %></th>
-            <td>
+      <div class="basic-settings">
+        <div class="setting-row">
+          <label class="setting-label"><%= l(:reminder_settings_remind_days) %></label>
+          <div class="setting-input-wrap">
+            <div class="input-line">
               <%= number_field_tag 'reminder_setting[remind_before_days]',
                     plugin_settings['remind_before_days'] || 3,
                     min: 1,
-                    size: 5 %>
-              <em class="info"><%= l(:reminder_settings_days_unit) %></em>
-              <span class="field-desc"><%= l(:reminder_settings_remind_days_info) %></span>
-            </td>
-          </tr>
-          <tr>
-            <th><%= l(:reminder_settings_schedule_time) %></th>
-            <td>
+                    size: 5,
+                    class: 'setting-input' %>
+              <span class="input-unit"><%= l(:reminder_settings_days_unit) %></span>
+            </div>
+            <span class="input-hint"><%= l(:reminder_settings_remind_days_info) %></span>
+          </div>
+        </div>
+        <div class="setting-row">
+          <label class="setting-label"><%= l(:reminder_settings_schedule_time) %></label>
+          <div class="setting-input-wrap">
+            <div class="input-line">
               <%= text_field_tag 'reminder_setting[schedule_time]',
                     plugin_settings['schedule_time'] || '09:00',
-                    size: 10 %>
-              <em class="info">HH:MM</em>
-              <span class="field-desc"><%= l(:reminder_settings_schedule_time_info) %></span>
-            </td>
-          </tr>
-          <tr>
-            <th><%= l(:reminder_settings_frequency_limit) %></th>
-            <td>
+                    size: 10,
+                    class: 'setting-input' %>
+              <span class="input-unit">HH:MM</span>
+            </div>
+            <span class="input-hint"><%= l(:reminder_settings_schedule_time_info) %></span>
+          </div>
+        </div>
+        <div class="setting-row">
+          <label class="setting-label"><%= l(:reminder_settings_frequency_limit) %></label>
+          <div class="setting-input-wrap">
+            <div class="input-line">
               <%= number_field_tag 'reminder_setting[frequency_limit]',
                     plugin_settings['frequency_limit'] || 7,
                     min: 1,
-                    size: 5 %>
-              <em class="info">/min</em>
-              <span class="field-desc"><%= l(:reminder_settings_frequency_info) %></span>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+                    size: 5,
+                    class: 'setting-input' %>
+              <span class="input-unit">/min</span>
+            </div>
+            <span class="input-hint"><%= l(:reminder_settings_frequency_info) %></span>
+          </div>
+        </div>
+      </div>
     </fieldset>
 
     <%# IP Whitelist Section %>
@@ -91,16 +92,6 @@
 
         <div class="projects-tree" id="projects-tree">
           <%
-            def get_project_depth(project)
-              depth = 0
-              p = project
-              while p.parent_id.present?
-                depth += 1
-                p = p.parent
-              end
-              depth
-            end
-
             def render_project_tree(projects, selected_proj_ids, depth = 0)
               output = []
               projects.each do |project|
@@ -145,7 +136,11 @@
             root_projects = Project.where(parent_id: nil, status: Project::STATUS_ACTIVE).order(:lft)
           %>
 
-          <%= render_project_tree(root_projects.to_a, selected_projects.map(&:to_i)) %>
+          <% if root_projects.any? %>
+            <%= render_project_tree(root_projects.to_a, selected_projects.map(&:to_i)) %>
+          <% else %>
+            <p class="no-projects"><%= l(:reminder_settings_no_projects) %></p>
+          <% end %>
         </div>
       </div>
     </fieldset>
@@ -260,13 +255,28 @@
   padding: 15px 20px;
   margin-bottom: 20px;
 }
+.enable-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.enable-label {
+  font-weight: 600;
+  font-size: 14px;
+  color: #333;
+}
 .main-enable-select {
-  min-width: 150px;
+  min-width: 120px;
   padding: 6px 10px;
   font-size: 14px;
   border: 1px solid #ccc;
   border-radius: 4px;
   background: white;
+}
+.enable-desc {
+  margin: 8px 0 0;
+  color: #888;
+  font-size: 12px;
 }
 
 /* Settings Sections */
@@ -293,6 +303,54 @@
 .settings-section input[type="number"],
 .settings-section input[type="text"] {
   padding: 4px 6px;
+}
+
+/* Basic Settings - Inline Layout */
+.basic-settings {
+  padding: 10px 0;
+}
+.setting-row {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 16px;
+  min-height: 36px;
+}
+.setting-row:last-child {
+  margin-bottom: 0;
+}
+.setting-label {
+  width: 30%;
+  padding: 6px 8px 6px 0;
+  font-weight: normal;
+  color: #333;
+  flex-shrink: 0;
+}
+.setting-input-wrap {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.input-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.setting-input {
+  padding: 5px 8px;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  font-size: 14px;
+  line-height: 1.4;
+}
+.input-unit {
+  color: #666;
+  font-size: 13px;
+  white-space: nowrap;
+}
+.input-hint {
+  color: #999;
+  font-size: 12px;
+  margin-top: 4px;
 }
 
 /* IP Whitelist */
@@ -361,6 +419,12 @@
   width: 20px;
   cursor: pointer;
   vertical-align: middle;
+}
+.no-projects {
+  color: #999;
+  font-style: italic;
+  padding: 10px 0;
+  text-align: center;
 }
 
 /* Template Placeholders - Table Layout */

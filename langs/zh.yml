@@ -17,6 +17,7 @@ zh:
   reminder_settings_collapse_all: "收起全部"
   reminder_settings_select_all: "全选"
   reminder_settings_deselect_all: "取消全选"
+  reminder_settings_no_projects: "暂无可用的项目"
   reminder_settings_ip_whitelist: "IP白名单"
   reminder_settings_ip_whitelist_desc: "仅白名单内的IP地址才能触发提醒功能。留空则允许所有IP访问。"
   reminder_settings_ip_whitelist_hint: "每行一个IP地址或CIDR网段（如：192.168.1.1 或 10.0.0.0/24）"

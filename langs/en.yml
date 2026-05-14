@@ -17,6 +17,7 @@ en:
   reminder_settings_collapse_all: "Collapse All"
   reminder_settings_select_all: "Select All"
   reminder_settings_deselect_all: "Deselect All"
+  reminder_settings_no_projects: "No projects available"
   reminder_settings_ip_whitelist: "IP Whitelist"
   reminder_settings_ip_whitelist_desc: "Only requests from whitelisted IPs can trigger reminders. Leave empty to allow all IPs."
   reminder_settings_ip_whitelist_hint: "Enter one IP address or CIDR per line (e.g., 192.168.1.1 or 10.0.0.0/24)"
