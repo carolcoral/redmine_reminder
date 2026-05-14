@@ -14,56 +14,56 @@
                 [l(:reminder_settings_enabled), '1'],
                 [l(:reminder_settings_disabled), '0']
               ], plugin_settings['plugin_enabled'] == '0' ? '0' : '1'),
-              class: 'main-enable-select' %>
+              class: 'main-enable-select',
+              style: 'height: 32px; line-height: 32px; padding: 0 8px;' %>
       </div>
       <p class="enable-desc"><%= l(:reminder_settings_main_enable_desc) %></p>
     </div>
 
     <fieldset class="box settings-section">
       <legend><%= l(:reminder_settings_basic) %></legend>
-      <div class="basic-settings">
-        <div class="setting-row">
-          <label class="setting-label"><%= l(:reminder_settings_remind_days) %></label>
-          <div class="setting-input-wrap">
-            <div class="input-line">
-              <%= number_field_tag 'reminder_setting[remind_before_days]',
-                    plugin_settings['remind_before_days'] || 3,
-                    min: 1,
-                    size: 5,
-                    class: 'setting-input' %>
-              <span class="input-unit"><%= l(:reminder_settings_days_unit) %></span>
-            </div>
-            <span class="input-hint"><%= l(:reminder_settings_remind_days_info) %></span>
-          </div>
-        </div>
-        <div class="setting-row">
-          <label class="setting-label"><%= l(:reminder_settings_schedule_time) %></label>
-          <div class="setting-input-wrap">
-            <div class="input-line">
-              <%= text_field_tag 'reminder_setting[schedule_time]',
-                    plugin_settings['schedule_time'] || '09:00',
-                    size: 10,
-                    class: 'setting-input' %>
-              <span class="input-unit">HH:MM</span>
-            </div>
-            <span class="input-hint"><%= l(:reminder_settings_schedule_time_info) %></span>
-          </div>
-        </div>
-        <div class="setting-row">
-          <label class="setting-label"><%= l(:reminder_settings_frequency_limit) %></label>
-          <div class="setting-input-wrap">
-            <div class="input-line">
-              <%= number_field_tag 'reminder_setting[frequency_limit]',
-                    plugin_settings['frequency_limit'] || 7,
-                    min: 1,
-                    size: 5,
-                    class: 'setting-input' %>
-              <span class="input-unit">/min</span>
-            </div>
-            <span class="input-hint"><%= l(:reminder_settings_frequency_info) %></span>
-          </div>
-        </div>
-      </div>
+      <table class="settings-table basic-settings-table">
+        <tbody>
+          <tr>
+            <th style="width: 30%;"><%= l(:reminder_settings_remind_days) %></th>
+            <td>
+              <span class="input-group">
+                <%= number_field_tag 'reminder_setting[remind_before_days]',
+                      plugin_settings['remind_before_days'] || 3,
+                      min: 1,
+                      size: 5 %>
+                <span class="input-suffix"><%= l(:reminder_settings_days_unit) %></span>
+              </span>
+              <span class="field-desc"><%= l(:reminder_settings_remind_days_info) %></span>
+            </td>
+          </tr>
+          <tr>
+            <th><%= l(:reminder_settings_schedule_time) %></th>
+            <td>
+              <span class="input-group">
+                <%= text_field_tag 'reminder_setting[schedule_time]',
+                      plugin_settings['schedule_time'] || '09:00',
+                      size: 10 %>
+                <span class="input-suffix">HH:MM</span>
+              </span>
+              <span class="field-desc"><%= l(:reminder_settings_schedule_time_info) %></span>
+            </td>
+          </tr>
+          <tr>
+            <th><%= l(:reminder_settings_frequency_limit) %></th>
+            <td>
+              <span class="input-group">
+                <%= number_field_tag 'reminder_setting[frequency_limit]',
+                      plugin_settings['frequency_limit'] || 7,
+                      min: 1,
+                      size: 5 %>
+                <span class="input-suffix">/min</span>
+              </span>
+              <span class="field-desc"><%= l(:reminder_settings_frequency_info) %></span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </fieldset>
 
     <%# IP Whitelist Section %>
@@ -92,52 +92,75 @@
 
         <div class="projects-tree" id="projects-tree">
           <%
-            def render_project_tree(projects, selected_proj_ids, depth = 0)
-              output = []
-              projects.each do |project|
-                checkbox_id = "project_#{project.id}"
-                children = Project.where(parent_id: project.id, status: Project::STATUS_ACTIVE).order(:lft).to_a
-                has_children = children.any?
+            def build_project_tree
+              all_projects = Project.where(status: Project::STATUS_ACTIVE).order(:lft).to_a
+              project_map = {}
+              all_projects.each { |p| project_map[p.id] = { project: p, children: [], depth: 0 } }
 
-                # Determine if this item is initially hidden (not a root project)
-                is_hidden = depth > 0
-
-                # Build the row
-                toggle_html = if has_children
-                  link_to_function('', '',
-                    class: "toggle-children #{project.id} icon icon-collapsed",
-                    onclick: "toggleProjectChildren(#{project.id}); return false;")
+              # Build tree structure
+              roots = []
+              all_projects.each do |p|
+                if p.parent_id.present? && project_map[p.parent_id]
+                  project_map[p.parent_id][:children] << project_map[p.id]
+                  # Calculate depth
+                  depth = 1
+                  parent = project_map[p.parent_id]
+                  while parent[:project].parent_id.present?
+                    depth += 1
+                    parent = project_map[parent[:project].parent_id]
+                  end
+                  project_map[p.id][:depth] = depth
                 else
-                  content_tag(:span, '', class: 'spacer')
-                end
-
-                label_html = label_tag(checkbox_id, class: 'project-label') do
-                  check_box_tag('reminder_setting[selected_projects][]',
-                    project.id,
-                    selected_proj_ids.include?(project.id),
-                    id: checkbox_id,
-                    class: 'project-checkbox',
-                    data: { parent_id: project.parent_id, has_children: has_children, project_id: project.id }) +
-                  ' ' + h(project.name)
-                end
-
-                row_html = content_tag(:div, toggle_html + label_html, class: 'project-row', style: "padding-left: #{depth * 20}px; display: #{is_hidden ? 'none' : 'block'};", data: { project_id: project.id, parent_id: project.parent_id })
-
-                output << row_html
-
-                # Recursively render children
-                if has_children
-                  output << render_project_tree(children, selected_proj_ids, depth + 1).html_safe
+                  roots << project_map[p.id]
                 end
               end
-              output.join.html_safe
+
+              roots
             end
 
-            root_projects = Project.where(parent_id: nil, status: Project::STATUS_ACTIVE).order(:lft)
+            def render_project_node(node, selected_proj_ids)
+              project = node[:project]
+              depth = node[:depth]
+              children = node[:children]
+              has_children = children.any?
+              checkbox_id = "project_#{project.id}"
+
+              toggle_html = if has_children
+                link_to_function('', '',
+                  class: "toggle-children #{project.id} icon icon-collapsed",
+                  onclick: "toggleProjectChildren(#{project.id}); return false;")
+              else
+                content_tag(:span, '', class: 'spacer')
+              end
+
+              label_html = label_tag(checkbox_id, class: 'project-label') do
+                check_box_tag('reminder_setting[selected_projects][]',
+                  project.id,
+                  selected_proj_ids.include?(project.id),
+                  id: checkbox_id,
+                  class: 'project-checkbox',
+                  data: { parent_id: project.parent_id, has_children: has_children, project_id: project.id }) +
+                ' ' + h(project.name)
+              end
+
+              row_html = content_tag(:div, toggle_html + label_html,
+                class: 'project-row',
+                style: "padding-left: #{depth * 20}px; display: #{depth > 0 ? 'none' : 'block'};",
+                data: { project_id: project.id, parent_id: project.parent_id })
+
+              children_html = ''
+              if has_children
+                children_html = children.map { |child| render_project_node(child, selected_proj_ids) }.join.html_safe
+              end
+
+              row_html + children_html
+            end
+
+            tree_roots = build_project_tree
           %>
 
-          <% if root_projects.any? %>
-            <%= render_project_tree(root_projects.to_a, selected_projects.map(&:to_i)) %>
+          <% if tree_roots.any? %>
+            <%= tree_roots.map { |root| render_project_node(root, selected_projects.map(&:to_i)) }.join.html_safe %>
           <% else %>
             <p class="no-projects"><%= l(:reminder_settings_no_projects) %></p>
           <% end %>
@@ -305,49 +328,22 @@
   padding: 4px 6px;
 }
 
-/* Basic Settings - Inline Layout */
-.basic-settings {
-  padding: 10px 0;
+/* Basic Settings Table */
+.basic-settings-table td {
+  vertical-align: middle;
 }
-.setting-row {
-  display: flex;
-  align-items: flex-start;
-  margin-bottom: 16px;
-  min-height: 36px;
-}
-.setting-row:last-child {
-  margin-bottom: 0;
-}
-.setting-label {
-  width: 30%;
-  padding: 6px 8px 6px 0;
-  font-weight: normal;
-  color: #333;
-  flex-shrink: 0;
-}
-.setting-input-wrap {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-}
-.input-line {
-  display: flex;
+.basic-settings-table .input-group {
+  display: inline-flex;
   align-items: center;
-  gap: 8px;
-}
-.setting-input {
-  padding: 5px 8px;
-  border: 1px solid #ccc;
-  border-radius: 3px;
-  font-size: 14px;
-  line-height: 1.4;
-}
-.input-unit {
-  color: #666;
-  font-size: 13px;
+  gap: 6px;
   white-space: nowrap;
 }
-.input-hint {
+.basic-settings-table .input-suffix {
+  color: #666;
+  font-size: 13px;
+}
+.basic-settings-table .field-desc {
+  display: block;
   color: #999;
   font-size: 12px;
   margin-top: 4px;
