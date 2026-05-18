@@ -31,6 +31,7 @@ Redmine::Plugin.register :redmine_reminder do
   end
 end
 
+require_relative 'app/helpers/redmine_reminder/reminder_settings_helper'
 require_relative 'lib/redmine_reminder/scheduler'
 
 class RedmineReminder::SchedulerJob
