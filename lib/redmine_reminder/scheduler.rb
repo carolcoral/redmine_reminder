@@ -147,10 +147,27 @@ module RedmineReminder
       template = @setting.email_template.presence || ReminderSetting.default_template
 
       begin
-        ReminderMailer.send_reminder_email(user, tasks, template).deliver_now
-        Rails.logger.info "RedmineReminder: Sent reminder to #{user.mail} for #{tasks.count} tasks"
+        mail_message = ReminderMailer.send_reminder_email(user, tasks, template)
+
+        # 确保执行发送
+        original_perform = ActionMailer::Base.perform_deliveries
+        ActionMailer::Base.perform_deliveries = true
+
+        result = mail_message.deliver_now
+
+        # 恢复设置
+        ActionMailer::Base.perform_deliveries = original_perform
+
+        Rails.logger.info "RedmineReminder: Sent reminder to #{user.mail} (#{user.name}) for #{tasks.count} tasks in project #{project.name}"
+        Rails.logger.debug "RedmineReminder: Email subject: #{mail_message.subject}"
+      rescue Net::SMTPAuthenticationError => e
+        Rails.logger.error "RedmineReminder: SMTP Authentication Failed for #{user.mail}: #{e.message}"
+      rescue Net::SMTPFatalError => e
+        Rails.logger.error "RedmineReminder: SMTP Fatal Error for #{user.mail}: #{e.message}"
+      rescue Errno::ECONNREFUSED, Errno::ETIMEDOUT => e
+        Rails.logger.error "RedmineReminder: Connection Failed for #{user.mail}: #{e.message}"
       rescue => e
-        Rails.logger.error "RedmineReminder: Failed to send email to #{user.mail}: #{e.message}"
+        Rails.logger.error "RedmineReminder: Failed to send email to #{user.mail}: #{e.class} - #{e.message}"
       end
     end
 
