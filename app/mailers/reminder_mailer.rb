@@ -43,15 +43,16 @@ class ReminderMailer < ActionMailer::Base
   private
 
   def mailer_from_address
-    # 优先使用 Redmine 配置的 email_delivery from 地址
-    if ActionMailer::Base.smtp_settings[:from].present?
-      ActionMailer::Base.smtp_settings[:from]
-    elsif Setting.emails_footer.present?
-      # 从页脚提取发件地址
-      Setting.emails_footer.match(/<([^>]+)>/)[1] rescue Setting.emails_from
-    else
-      Setting.emails_from || "redmine@#{Setting.host_name}"
-    end
+    # 优先使用 SMTP 配置中的 from 地址
+    smtp_from = ActionMailer::Base.smtp_settings[:from]
+    return smtp_from if smtp_from.present?
+
+    # 尝试从 Redmine 设置获取
+    mail_from = Setting.mail_from
+    return mail_from if mail_from.present?
+
+    # 回退方案：使用应用标题作为域名
+    "redmine@#{Setting.host_name}"
   end
 
   def render_reminder_html

@@ -228,9 +228,9 @@ class RemindersController < ApplicationController
     Rails.logger.info "[RedmineReminder] Enable STARTTLS: #{smtp[:enable_starttls_auto] || false}"
 
     # 检查 from 地址
-    from_addr = smtp[:from] || Setting.emails_from
+    from_addr = smtp[:from] || Setting.mail_from
     if from_addr.blank?
-      issues << "发件人地址未配置 (email_from)"
+      issues << "发件人地址未配置 (mail_from)"
       Rails.logger.warn "[RedmineReminder] From address: NOT CONFIGURED"
     else
       Rails.logger.info "[RedmineReminder] From address: #{from_addr}"
