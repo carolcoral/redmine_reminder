@@ -2,7 +2,60 @@
   <%
     plugin_settings = Setting.plugin_redmine_reminder || {}
     selected_projects = plugin_settings['selected_projects'] || []
-    include RedmineReminder::ReminderSettingsHelper
+
+    # 项目树渲染方法
+    def get_project_depth(project, project_by_id)
+      depth = 0
+      p = project
+      while p.parent_id.present?
+        depth += 1
+        p = project_by_id[p.parent_id]
+        break unless p
+      end
+      depth
+    end
+
+    def render_project_tree_node(project, selected_proj_ids, all_projects, project_by_id)
+      children = all_projects.select { |p| p.parent_id == project.id }.sort_by(&:lft)
+      has_kids = children.any?
+      checkbox_id = "project_#{project.id}"
+      depth = get_project_depth(project, project_by_id)
+
+      toggle_html = if has_kids
+        link_to_function('', '',
+          class: "toggle-children icon icon-collapsed",
+          onclick: "toggleProjectChildren(#{project.id}); return false;",
+          data: { project_id: project.id })
+      else
+        content_tag(:span, '', class: 'spacer')
+      end
+
+      label_html = label_tag(checkbox_id, class: 'project-label') do
+        check_box_tag('reminder_setting[selected_projects][]',
+          project.id,
+          selected_proj_ids.include?(project.id),
+          id: checkbox_id,
+          class: 'project-checkbox',
+          data: { project_id: project.id, has_children: has_kids }) +
+        ' ' + h(project.name)
+      end
+
+      row_html = content_tag(:div, toggle_html + label_html,
+        class: 'project-row',
+        style: "padding-left: #{depth * 20}px;",
+        data: { project_id: project.id })
+
+      if has_kids
+        children_html = content_tag(:div,
+          children.map { |child| render_project_tree_node(child, selected_proj_ids, all_projects, project_by_id) }.join.html_safe,
+          class: 'project-children',
+          style: 'display: none;',
+          data: { parent_id: project.id })
+        row_html + children_html
+      else
+        row_html
+      end
+    end
   %>
   <%= form_tag reminders_settings_path, method: :post do %>
 
@@ -94,8 +147,16 @@
         <div class="projects-tree" id="projects-tree">
           <%=
             all_projects = Project.where(status: Project::STATUS_ACTIVE).order(:lft).to_a
+            project_by_id = {}
+            all_projects.each { |p| project_by_id[p.id] = p }
             selected_proj_ids = selected_projects.map(&:to_i)
-            render_project_tree(all_projects, selected_proj_ids)
+            root_projects = all_projects.select { |p| p.parent_id.nil? }.sort_by(&:lft)
+
+            if root_projects.any?
+              root_projects.map { |root| render_project_tree_node(root, selected_proj_ids, all_projects, project_by_id) }.join.html_safe
+            else
+              content_tag(:p, l(:reminder_settings_no_projects), class: 'no-projects')
+            end
           %>
         </div>
       </div>
