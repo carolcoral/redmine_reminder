@@ -2,6 +2,20 @@
   max-width: 900px;
 }
 
+.reminder-settings label {
+  display: inline;
+  font-weight: normal;
+  color: inherit;
+  cursor: default;
+}
+
+.reminder-settings .enable-label {
+  font-weight: 600;
+  font-size: 14px;
+  color: #333;
+  cursor: default;
+}
+
 .reminder-settings fieldset.box {
   margin-bottom: 20px;
 }
