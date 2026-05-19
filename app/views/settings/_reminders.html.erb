@@ -258,31 +258,41 @@
 <%= javascript_include_tag 'reminder_settings', plugin: 'redmine_reminder' %>
 
 <style>
+/* 基础布局 */
 .reminder-settings {
   max-width: 900px;
   margin: 0 auto;
   padding: 20px;
 }
 
-/* Main Enable Dropdown */
-.main-enable-container {
+/* 重置 label 样式，避免与 Redmine 全局样式冲突 */
+.reminder-settings label {
+  display: inline;
+  font-weight: normal;
+  color: inherit;
+  cursor: default;
+}
+
+/* Main Enable Dropdown - 插件独立样式 */
+.reminder-settings .main-enable-container {
   background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
   border: 1px solid #dee2e6;
   border-radius: 8px;
   padding: 15px 20px;
   margin-bottom: 20px;
 }
-.enable-row {
+.reminder-settings .enable-row {
   display: flex;
   align-items: center;
   gap: 12px;
 }
-.enable-label {
+.reminder-settings .enable-label {
   font-weight: 600;
   font-size: 14px;
   color: #333;
+  cursor: default;
 }
-.main-enable-select {
+.reminder-settings .main-enable-select {
   min-width: 120px;
   padding: 6px 10px;
   font-size: 14px;
@@ -290,59 +300,59 @@
   border-radius: 4px;
   background: white;
 }
-.enable-desc {
+.reminder-settings .enable-desc {
   margin: 8px 0 0;
   color: #888;
   font-size: 12px;
 }
 
 /* Settings Sections */
-.settings-section {
+.reminder-settings .settings-section {
   margin-bottom: 20px;
 }
-.settings-section table.settings-table {
+.reminder-settings .settings-section table.settings-table {
   width: 100%;
 }
-.settings-section table.settings-table th {
+.reminder-settings .settings-section table.settings-table th {
   text-align: left;
   padding: 8px;
   font-weight: normal;
 }
-.settings-section table.settings-table td {
+.reminder-settings .settings-section table.settings-table td {
   padding: 8px;
 }
-.settings-section .field-desc {
+.reminder-settings .settings-section .field-desc {
   display: block;
   color: #999;
   font-size: 12px;
   margin-top: 4px;
 }
-.settings-section input[type="number"],
-.settings-section input[type="text"] {
+.reminder-settings .settings-section input[type="number"],
+.reminder-settings .settings-section input[type="text"] {
   padding: 4px 6px;
 }
 
 /* Basic Settings Table */
-.basic-settings-table td {
+.reminder-settings .basic-settings-table td {
   vertical-align: middle;
 }
-.basic-settings-table .input-group {
+.reminder-settings .basic-settings-table .input-group {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   white-space: nowrap;
 }
-.basic-settings-table .input-suffix {
+.reminder-settings .basic-settings-table .input-suffix {
   color: #666;
   font-size: 13px;
 }
-.basic-settings-table .field-desc {
+.reminder-settings .basic-settings-table .field-desc {
   display: block;
   color: #999;
   font-size: 12px;
   margin-top: 4px;
 }
-.time-picker {
+.reminder-settings .time-picker {
   padding: 4px 8px;
   border: 1px solid #ccc;
   border-radius: 3px;
@@ -351,15 +361,15 @@
 }
 
 /* IP Whitelist */
-.section-desc {
+.reminder-settings .section-desc {
   color: #666;
   font-size: 13px;
   margin-bottom: 12px;
 }
-.ip-whitelist-container {
+.reminder-settings .ip-whitelist-container {
   margin-top: 10px;
 }
-.ip-whitelist-input {
+.reminder-settings .ip-whitelist-input {
   width: 100%;
   font-family: 'Consolas', 'Monaco', monospace;
   font-size: 13px;
@@ -369,12 +379,12 @@
   resize: vertical;
   background: #fafafa;
 }
-.ip-whitelist-input:focus {
+.reminder-settings .ip-whitelist-input:focus {
   outline: none;
   border-color: #259e56;
   box-shadow: 0 0 0 2px rgba(37, 158, 86, 0.1);
 }
-.ip-hint {
+.reminder-settings .ip-hint {
   margin-top: 8px;
   font-size: 12px;
   color: #888;
@@ -382,10 +392,10 @@
 }
 
 /* Project Selector */
-.project-selector {
+.reminder-settings .project-selector {
   margin-top: 10px;
 }
-.projects-tree {
+.reminder-settings .projects-tree {
   margin-top: 10px;
   border: 1px solid #ddd;
   padding: 10px;
@@ -394,36 +404,36 @@
   overflow-y: auto;
   border-radius: 4px;
 }
-.project-children {
+.reminder-settings .project-children {
   padding-left: 20px;
 }
-.project-children:first-child {
+.reminder-settings .project-children:first-child {
   padding-left: 0;
 }
-.project-row {
+.reminder-settings .project-row {
   padding: 5px 0;
   line-height: 1.6;
 }
-.project-label {
+.reminder-settings .project-label {
   display: inline-flex;
   align-items: center;
   cursor: pointer;
   font-size: 14px;
 }
-.project-label .project-checkbox {
+.reminder-settings .project-label .project-checkbox {
   margin-right: 8px;
 }
-.spacer {
+.reminder-settings .spacer {
   display: inline-block;
   width: 20px;
 }
-.toggle-children {
+.reminder-settings .toggle-children {
   display: inline-block;
   width: 20px;
   cursor: pointer;
   vertical-align: middle;
 }
-.no-projects {
+.reminder-settings .no-projects {
   color: #999;
   font-style: italic;
   padding: 10px 0;
@@ -431,35 +441,35 @@
 }
 
 /* Template Placeholders - Table Layout */
-.template-placeholders {
+.reminder-settings .template-placeholders {
   margin-bottom: 20px;
 }
-.template-placeholders h4 {
+.reminder-settings .template-placeholders h4 {
   margin-bottom: 15px;
   color: #333;
   font-size: 14px;
 }
-.placeholders-table {
+.reminder-settings .placeholders-table {
   width: 100%;
   border-collapse: collapse;
   border: 1px solid #e8e8e8;
 }
-.placeholders-table td {
+.reminder-settings .placeholders-table td {
   padding: 10px 12px;
   border: 1px solid #f0f0f0;
   font-size: 13px;
   vertical-align: middle;
 }
-.placeholders-table td:nth-child(odd) {
+.reminder-settings .placeholders-table td:nth-child(odd) {
   background: #fafafa;
   width: 12%;
   text-align: center;
 }
-.placeholders-table td:nth-child(even) {
+.reminder-settings .placeholders-table td:nth-child(even) {
   width: 21%;
   color: #555;
 }
-.placeholders-table td code {
+.reminder-settings .placeholders-table td code {
   background: #f0f0f0;
   padding: 3px 8px;
   border-radius: 3px;
@@ -470,10 +480,10 @@
   white-space: nowrap;
 }
 
-.template-editor {
+.reminder-settings .template-editor {
   margin-top: 10px;
 }
-.template-editor textarea {
+.reminder-settings .template-editor textarea {
   resize: vertical;
 }
 </style>
