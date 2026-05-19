@@ -150,7 +150,7 @@ class RemindersController < ApplicationController
       flash[:error] = "#{l(:reminder_test_email_failed)}: #{e.message}"
     end
 
-    redirect_to settings_plugin_path('redmine_reminder')
+    redirect_to '/settings/plugin/redmine_reminder'
   end
 
   def preview_template
@@ -188,7 +188,7 @@ class RemindersController < ApplicationController
     Setting.plugin_redmine_reminder = current_settings
 
     flash[:notice] = l(:reminder_settings_template_reset)
-    redirect_to settings_plugin_path('redmine_reminder')
+    redirect_to '/settings/plugin/redmine_reminder'
   end
 
   private
