@@ -14,6 +14,7 @@
   font-size: 14px;
   color: #333;
   cursor: default;
+  display: content;
 }
 
 .reminder-settings fieldset.box {
@@ -48,53 +49,88 @@
   padding: 4px 6px;
 }
 
-.project-selector {
+/* Project Selector */
+.reminder-settings .project-selector {
   margin-top: 10px;
 }
 
-.projects-tree {
+.reminder-settings .projects-tree {
   margin-top: 10px;
   border: 1px solid #ddd;
   padding: 10px;
   background: #fafafa;
   max-height: 300px;
   overflow-y: auto;
+  border-radius: 4px;
 }
 
-.project-item {
+.reminder-settings .project-item {
   padding: 4px 0;
 }
 
-.project-child {
+.reminder-settings .project-child {
   padding-left: 0;
 }
 
-.spacer {
+.reminder-settings .project-children {
+  padding-left: 20px;
+}
+
+.reminder-settings .project-children:first-child {
+  padding-left: 0;
+}
+
+.reminder-settings .project-row {
+  padding: 5px 0;
+  line-height: 1.6;
+}
+
+.reminder-settings .project-label {
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.reminder-settings .project-label .project-checkbox {
+  margin-right: 8px;
+}
+
+.reminder-settings .spacer {
   display: inline-block;
   width: 20px;
 }
 
-.toggle-children {
+.reminder-settings .toggle-children {
   display: inline-block;
   width: 20px;
   cursor: pointer;
+  vertical-align: middle;
 }
 
-.template-placeholders {
+.reminder-settings .no-projects {
+  color: #999;
+  font-style: italic;
+  padding: 10px 0;
+  text-align: center;
+}
+
+/* Template Placeholders */
+.reminder-settings .template-placeholders {
   margin-bottom: 15px;
 }
 
-.template-placeholders h4 {
+.reminder-settings .template-placeholders h4 {
   margin-bottom: 10px;
 }
 
-.placeholders-list {
+.reminder-settings .placeholders-list {
   background: #f8f8f8;
   padding: 10px;
   border-radius: 3px;
 }
 
-.placeholder-item {
+.reminder-settings .placeholder-item {
   display: inline-block;
   margin: 4px 8px 4px 0;
   padding: 4px 8px;
@@ -104,25 +140,155 @@
   font-size: 12px;
 }
 
-.placeholder-item code {
+.reminder-settings .placeholder-item code {
   background: #e8e8e8;
   padding: 2px 6px;
   border-radius: 3px;
   font-family: monospace;
 }
 
-.template-editor {
+.reminder-settings .template-editor {
   margin-top: 10px;
 }
 
-.template-editor textarea {
+.reminder-settings .template-editor textarea {
   resize: vertical;
 }
 
-.template-actions {
+.reminder-settings .template-actions {
   margin-top: 10px;
 }
 
-.template-actions a {
+.reminder-settings .template-actions a {
   margin-right: 15px;
+}
+
+/* Settings Sections */
+.reminder-settings .settings-section {
+  margin-bottom: 20px;
+}
+
+.reminder-settings .settings-section .section-desc {
+  color: #666;
+  font-size: 13px;
+  margin-bottom: 12px;
+}
+
+.reminder-settings .settings-section .ip-whitelist-container {
+  margin-top: 10px;
+}
+
+.reminder-settings .settings-section .ip-whitelist-input {
+  width: 100%;
+  font-family: 'Consolas', 'Monaco', monospace;
+  font-size: 13px;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  resize: vertical;
+  background: #fafafa;
+}
+
+.reminder-settings .settings-section .ip-whitelist-input:focus {
+  outline: none;
+  border-color: #259e56;
+  box-shadow: 0 0 0 2px rgba(37, 158, 86, 0.1);
+}
+
+.reminder-settings .settings-section .ip-hint {
+  margin-top: 8px;
+  font-size: 12px;
+  color: #888;
+  font-style: italic;
+}
+
+/* Basic Settings Table */
+.reminder-settings .basic-settings-table td {
+  vertical-align: middle;
+}
+
+.reminder-settings .basic-settings-table .input-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.reminder-settings .basic-settings-table .input-suffix {
+  color: #666;
+  font-size: 13px;
+}
+
+.reminder-settings .time-picker {
+  padding: 4px 8px;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  font-size: 14px;
+  min-width: 100px;
+}
+
+/* Main Enable Dropdown */
+.reminder-settings .main-enable-container {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  padding: 15px 20px;
+  margin-bottom: 20px;
+}
+
+.reminder-settings .enable-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.reminder-settings .main-enable-select {
+  min-width: 120px;
+  padding: 6px 10px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background: white;
+}
+
+.reminder-settings .enable-desc {
+  margin: 8px 0 0;
+  color: #888;
+  font-size: 12px;
+}
+
+/* Template Placeholders Table Layout */
+.reminder-settings .placeholders-table {
+  width: 100%;
+  border-collapse: collapse;
+  border: 1px solid #e8e8e8;
+}
+
+.reminder-settings .placeholders-table td {
+  padding: 10px 12px;
+  border: 1px solid #f0f0f0;
+  font-size: 13px;
+  vertical-align: middle;
+}
+
+.reminder-settings .placeholders-table td:nth-child(odd) {
+  background: #fafafa;
+  width: 12%;
+  text-align: center;
+}
+
+.reminder-settings .placeholders-table td:nth-child(even) {
+  width: 21%;
+  color: #555;
+}
+
+.reminder-settings .placeholders-table td code {
+  background: #f0f0f0;
+  padding: 3px 8px;
+  border-radius: 3px;
+  font-size: 12px;
+  color: #259e56;
+  font-weight: 500;
+  border: 1px solid #e0e0e0;
+  white-space: nowrap;
 }
