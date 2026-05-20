@@ -16,7 +16,7 @@ Redmine::Plugin.register :redmine_reminder do
     'selected_projects' => [],
     'email_template' => nil,
     'ip_whitelist' => ''
-  }, partial: 'settings/reminders', defaults: :reminders
+  }, partial: 'settings/reminders'
 
   locales_for_plugin = Dir.glob(File.join(File.dirname(__FILE__), 'langs', '*.yml'))
   Rails.application.config.i18n.load_path += locales_for_plugin

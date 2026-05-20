@@ -1,23 +1,7 @@
 class ReminderSetting < ActiveRecord::Base
-  validates :remind_before_days, :schedule_time, :frequency_limit, presence: true
-  validates :remind_before_days, numericality: { only_integer: true, greater_than: 0 }
-  validates :frequency_limit, numericality: { only_integer: true, greater_than: 0 }
-
-  serialize :selected_projects
-
-  before_save :ensure_selected_projects_array
-  before_validation :ensure_default_values
-
-  def self.setting
-    first_or_create!(
-      remind_before_days: 7,
-      schedule_time: '09:00',
-      frequency_limit: 25,
-      email_template: default_template,
-      selected_projects: [],
-      enabled: true
-    )
-  end
+  # Note: This model is not actively used for settings management.
+  # Settings are stored via Setting.plugin_redmine_reminder (hash in settings table)
+  # This model is kept for backward compatibility with the default_template method.
 
   def self.default_template
     <<~TEMPLATE
@@ -47,42 +31,5 @@ class ReminderSetting < ActiveRecord::Base
       <p>点击查看详情：<a href="{{project_url}}">{{project_url}}</a></p>
       <p style="color: #666; font-size: 12px;">此邮件由系统自动发送，请勿回复。</p>
     TEMPLATE
-  end
-
-  def selected_project_ids
-    return [] if selected_projects.blank?
-    projects = selected_projects.is_a?(String) ? JSON.parse(selected_projects) : selected_projects
-    projects.map(&:to_i)
-  end
-
-  def selected_projects=(value)
-    if value.is_a?(Array)
-      write_attribute(:selected_projects, value.map(&:to_s))
-    elsif value.is_a?(String)
-      write_attribute(:selected_projects, value)
-    else
-      write_attribute(:selected_projects, value)
-    end
-  end
-
-  def schedule_time_minutes
-    return [0, 0] unless schedule_time.present?
-    parts = schedule_time.split(':')
-    [parts[0].to_i, parts[1].to_i]
-  end
-
-  private
-
-  def ensure_selected_projects_array
-    self.selected_projects = [] if selected_projects.nil?
-    self.selected_projects = selected_projects.map(&:to_i).uniq if selected_projects.is_a?(Array)
-  end
-
-  def ensure_default_values
-    self.schedule_time = '09:00' if schedule_time.blank?
-    self.remind_before_days = 7 if remind_before_days.blank?
-    self.frequency_limit = 25 if frequency_limit.blank?
-    self.email_template = self.class.default_template if email_template.blank?
-    self.selected_projects ||= []
   end
 end

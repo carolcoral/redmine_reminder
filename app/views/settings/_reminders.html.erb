@@ -1,6 +1,7 @@
 <div class="reminder-settings">
   <%
     plugin_settings = Setting.plugin_redmine_reminder || {}
+    Rails.logger.info "[RedmineReminder] View - Loaded settings: #{plugin_settings.inspect}"
     selected_projects = plugin_settings['selected_projects'] || []
 
     # 项目树渲染方法
