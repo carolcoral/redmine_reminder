@@ -290,10 +290,8 @@ class RemindersController < ApplicationController
 
     Rails.logger.info "[RedmineReminder] After permit: #{permitted_params.inspect}"
 
-    # Handle plugin_enabled - convert string '1'/'0' to boolean
-    if permitted_params.key?('plugin_enabled')
-      permitted_params['plugin_enabled'] = permitted_params['plugin_enabled'].to_s == '1'
-    end
+    # Keep plugin_enabled as string '1'/'0' for consistency with the view
+    # No conversion needed - keep it as submitted
 
     permitted_params['selected_projects'] = (permitted_params['selected_projects'] || []).reject(&:blank?).map(&:to_s)
     permitted_params['remind_before_days'] = permitted_params['remind_before_days'].to_i

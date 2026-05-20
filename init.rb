@@ -9,11 +9,13 @@ Redmine::Plugin.register :redmine_reminder do
   permission :manage_reminder_settings, {}
 
   settings default: {
-    'enabled' => false,
+    'plugin_enabled' => '1',
     'remind_before_days' => 3,
     'schedule_time' => '09:00',
     'frequency_limit' => 7,
-    'selected_projects' => []
+    'selected_projects' => [],
+    'email_template' => nil,
+    'ip_whitelist' => ''
   }, partial: 'settings/reminders', defaults: :reminders
 
   locales_for_plugin = Dir.glob(File.join(File.dirname(__FILE__), 'langs', '*.yml'))
