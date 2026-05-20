@@ -1,20 +1,45 @@
 module RedmineReminder
   class Scheduler
     def initialize(request_ip = nil)
-      @setting = ReminderSetting.setting
+      @settings = Setting.plugin_redmine_reminder || {}
       @executed_projects = Set.new
       @request_ip = request_ip
     end
 
+    def enabled?
+      @settings['plugin_enabled'] == '1' || @settings['plugin_enabled'] == true
+    end
+
+    def remind_before_days
+      (@settings['remind_before_days'] || 3).to_i
+    end
+
+    def schedule_time
+      @settings['schedule_time'] || '09:00'
+    end
+
+    def frequency_limit
+      (@settings['frequency_limit'] || 7).to_i
+    end
+
+    def selected_project_ids
+      projects = @settings['selected_projects'] || []
+      projects.map(&:to_i)
+    end
+
+    def email_template
+      @settings['email_template'].presence
+    end
+
     def run
-      return unless @setting.enabled?
+      return unless enabled?
       return unless check_ip_whitelist
 
-      schedule_hour, schedule_minute = @setting.schedule_time_minutes
+      schedule_hour, schedule_minute = schedule_time_minutes
       now = Time.current
 
       unless now.hour == schedule_hour && now.min == schedule_minute
-        Rails.logger.debug "RedmineReminder: Not scheduled time (current: #{now.strftime('%H:%M')}, scheduled: #{@setting.schedule_time})"
+        Rails.logger.debug "RedmineReminder: Not scheduled time (current: #{now.strftime('%H:%M')}, scheduled: #{schedule_time})"
         return
       end
 
@@ -23,8 +48,13 @@ module RedmineReminder
 
     private
 
+    def schedule_time_minutes
+      parts = schedule_time.split(':')
+      [parts[0].to_i, parts[1].to_i]
+    end
+
     def process_all_projects
-      selected_project_ids = @setting.selected_project_ids
+      selected_project_ids = selected_project_ids
 
       if selected_project_ids.empty?
         Project.active.includes(:members, :issues).find_each do |project|
@@ -50,19 +80,25 @@ module RedmineReminder
 
       return if member_tasks.empty?
 
-      batches = member_tasks.each_slice(@setting.frequency_limit).to_a
+      # 按 frequency_limit 分批发送，每批 N 个用户，等待 60 秒
+      users_with_tasks = member_tasks.reject { |_user_id, tasks| tasks.empty? }
+      total_users = users_with_tasks.size
+      processed = 0
 
-      batches.each_with_index do |batch, index|
+      while processed < total_users
+        batch = users_with_tasks.drop(processed).take(frequency_limit)
+
         batch.each do |user_id, tasks|
-          next if tasks.empty?
-
           user = User.find_by(id: user_id)
           next unless user && user.active? && user.mail.present?
 
           send_reminder(user, tasks, project)
         end
 
-        unless index == batches.size - 1
+        processed += batch.size
+        Rails.logger.info "RedmineReminder: Sent #{batch.size} emails (total: #{processed}/#{total_users})"
+
+        if processed < total_users
           sleep 60
         end
       end
@@ -98,7 +134,7 @@ module RedmineReminder
 
     def build_member_tasks(project, member_tasks)
       result = {}
-      reminder_threshold = @setting.remind_before_days.days
+      reminder_threshold = remind_before_days.days
       today = Date.today
       completed_statuses = IssueStatus.where(is_closed: true).pluck(:id)
       project_and_descendants_ids = [project.id] + project.descendants.pluck(:id)
@@ -144,7 +180,7 @@ module RedmineReminder
     end
 
     def send_reminder(user, tasks, project)
-      template = @setting.email_template.presence || ReminderSetting.default_template
+      template = email_template.presence || ReminderSetting.default_template
 
       begin
         mail_message = ReminderMailer.send_reminder_email(user, tasks, template)

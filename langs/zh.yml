@@ -7,7 +7,7 @@ zh:
   reminder_settings_schedule_time: "定时发送时间"
   reminder_settings_schedule_time_info: "每日发送提醒邮件的时间（24小时制）"
   reminder_settings_frequency_limit: "发送频率限制"
-  reminder_settings_frequency_info: "每分钟最大发送邮件数量"
+  reminder_settings_frequency_info: "单位时间内发送邮件的用户数量，每批发送后等待60秒再发送下一批"
   reminder_settings_enabled: "启用"
   reminder_settings_disabled: "禁用"
   reminder_settings_main_enable: "启用插件"

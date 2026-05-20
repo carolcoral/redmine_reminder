@@ -7,7 +7,7 @@ en:
   reminder_settings_schedule_time: "Schedule Time"
   reminder_settings_schedule_time_info: "Daily time to send reminders (24-hour format)"
   reminder_settings_frequency_limit: "Sending Frequency"
-  reminder_settings_frequency_info: "Maximum number of emails per minute"
+  reminder_settings_frequency_info: "Number of users to email per batch, waits 60 seconds between batches"
   reminder_settings_enabled: "Enable"
   reminder_settings_disabled: "Disabled"
   reminder_settings_main_enable: "Enable Plugin"
