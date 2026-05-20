@@ -5,7 +5,6 @@ Redmine::Plugin.register :redmine_reminder do
   description 'A plugin for sending reminder emails for upcoming and overdue tasks'
   version '1.0.0'
   url 'https://github.com/carolcoral/redmine_reminder'
- stylesheet 'reminder_settings'
 
   permission :manage_reminder_settings, {}
 
