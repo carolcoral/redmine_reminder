@@ -62,7 +62,7 @@
     <%# Main Enable Switch %>
     <div class="main-enable-container">
       <div class="enable-row">
-        <label class="reminder-settings-enable-label"><%= l(:reminder_settings_main_enable) %>:</label>
+        <label class="reminder-settings-enable-label" style="margin-left:0px;width:auto;"><%= l(:reminder_settings_main_enable) %>:</label>
         <%= select_tag 'reminder_setting[plugin_enabled]',
               options_for_select([
                 [l(:reminder_settings_enabled), '1'],
