@@ -23,7 +23,7 @@
 
       toggle_html = if has_kids
         link_to_function('', '',
-          class: "toggle-children icon icon-collapsed",
+          class: "toggle-children icon-collapsed",
           onclick: "toggleProjectChildren(#{project.id}); return false;",
           data: { project_id: project.id })
       else
@@ -140,8 +140,8 @@
       <legend><%= l(:reminder_settings_projects) %></legend>
       <div class="project-selector">
         <div class="contextual">
-          <a href="#" onclick="expandAllProjects(); return false;" class="icon icon-expended" title="<%= l(:reminder_settings_expand_all) %>"></a>
-          <a href="#" onclick="collapseAllProjects(); return false;" class="icon icon-collapsed" title="<%= l(:reminder_settings_collapse_all) %>"></a>
+          <a href="#" onclick="expandAllProjects(); return false;" class="expand-all-btn" title="<%= l(:reminder_settings_expand_all) %>">[+]</a>
+          <a href="#" onclick="collapseAllProjects(); return false;" class="collapse-all-btn" title="<%= l(:reminder_settings_collapse_all) %>">[-]</a>
         </div>
 
         <div class="projects-tree" id="projects-tree">
