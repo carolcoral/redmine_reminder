@@ -62,7 +62,7 @@
     <%# Main Enable Switch %>
     <div class="main-enable-container">
       <div class="enable-row">
-        <label class="enable-label"><%= l(:reminder_settings_main_enable) %>:</label>
+        <label class="reminder-settings-enable-label"><%= l(:reminder_settings_main_enable) %>:</label>
         <%= select_tag 'reminder_setting[plugin_enabled]',
               options_for_select([
                 [l(:reminder_settings_enabled), '1'],
@@ -70,8 +70,8 @@
               ], (plugin_settings['plugin_enabled'] == '0' || plugin_settings['plugin_enabled'] == false) ? '0' : '1'),
               class: 'main-enable-select',
               style: 'height: 32px; line-height: 32px; padding: 0 8px;' %>
+              <p class="reminder-settings-enable-desc"><%= l(:reminder_settings_main_enable_desc) %></p>
       </div>
-      <p class="enable-desc"><%= l(:reminder_settings_main_enable_desc) %></p>
     </div>
 
     <fieldset class="box settings-section">

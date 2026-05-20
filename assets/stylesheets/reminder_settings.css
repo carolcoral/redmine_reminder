@@ -26,6 +26,14 @@
   display: inline;
 }
 
+.reminder-settings-enable-label {
+  display: contents;
+}
+
+.reminder-settings-enable-desc {
+  padding-left: 0px;
+}
+
 .reminder-settings fieldset.box {
   margin-bottom: 20px;
 }
