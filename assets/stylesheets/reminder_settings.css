@@ -341,28 +341,32 @@
 
 .reminder-settings .placeholders-table {
   width: 100%;
-  min-width: 600px;
+  min-width: 700px;
   border-collapse: collapse;
   border: 1px solid #e8e8e8;
-  table-layout: fixed;
 }
 
 .reminder-settings .placeholders-table td {
-  padding: 10px 12px;
+  padding: 8px 10px;
   border: 1px solid #f0f0f0;
   font-size: 13px;
   vertical-align: middle;
-  word-wrap: break-word;
+  white-space: nowrap;
 }
 
-.reminder-settings .placeholders-table td:nth-child(odd) {
+/* 6列布局：每2列一组（code + desc），共3组 */
+.reminder-settings .placeholders-table td:nth-child(6n+1),
+.reminder-settings .placeholders-table td:nth-child(6n+3),
+.reminder-settings .placeholders-table td:nth-child(6n+5) {
   background: #fafafa;
-  width: 12%;
+  width: 15%;
   text-align: center;
 }
 
-.reminder-settings .placeholders-table td:nth-child(even) {
-  width: 21%;
+.reminder-settings .placeholders-table td:nth-child(6n+2),
+.reminder-settings .placeholders-table td:nth-child(6n+4),
+.reminder-settings .placeholders-table td:nth-child(6n+6) {
+  width: 18%;
   color: #555;
 }
 
