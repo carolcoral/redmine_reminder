@@ -1,5 +1,14 @@
 .reminder-settings {
   max-width: 900px;
+  margin: 0 auto;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.reminder-settings *,
+.reminder-settings *::before,
+.reminder-settings *::after {
+  box-sizing: border-box;
 }
 
 .reminder-settings label {
@@ -14,7 +23,7 @@
   font-size: 14px;
   color: #333;
   cursor: default;
-  display: content;
+  display: inline;
 }
 
 .reminder-settings fieldset.box {
@@ -60,7 +69,7 @@
   padding: 10px;
   background: #fafafa;
   max-height: 300px;
-  overflow-y: auto;
+  overflow: auto;
   border-radius: 4px;
 }
 
@@ -258,10 +267,16 @@
 }
 
 /* Template Placeholders Table Layout */
+.reminder-settings .template-placeholders {
+  overflow-x: auto;
+}
+
 .reminder-settings .placeholders-table {
   width: 100%;
+  min-width: 600px;
   border-collapse: collapse;
   border: 1px solid #e8e8e8;
+  table-layout: fixed;
 }
 
 .reminder-settings .placeholders-table td {
@@ -269,6 +284,7 @@
   border: 1px solid #f0f0f0;
   font-size: 13px;
   vertical-align: middle;
+  word-wrap: break-word;
 }
 
 .reminder-settings .placeholders-table td:nth-child(odd) {
