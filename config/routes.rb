@@ -1,5 +1,3 @@
-get 'reminders/settings', to: 'reminders#settings'
-post 'reminders/settings', to: 'reminders#settings'
 get 'reminders/test_email', to: 'reminders#test_email'
 post 'reminders/test_email', to: 'reminders#test_email'
 post 'reminders/preview_template', to: 'reminders#preview_template'

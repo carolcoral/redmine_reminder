@@ -1,12 +1,6 @@
 class RemindersController < ApplicationController
   before_action :require_admin
 
-  def settings
-    if request.post? || request.patch?
-      save_settings
-    end
-  end
-
   def test_email
     plugin_settings = Setting.plugin_redmine_reminder || {}
 
