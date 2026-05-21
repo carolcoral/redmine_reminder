@@ -1,14 +1,7 @@
 module RedmineReminder
   class Scheduler
     def initialize(request_ip = nil)
-      raw_settings = Setting.plugin_redmine_reminder || {}
-      # Handle both normal format {"key" => "val"} and nested format {"plugin" => {"key" => "val"}}
-      # that Redmine's standard SettingsController may produce
-      @settings = if raw_settings.key?('plugin') && raw_settings['plugin'].is_a?(Hash)
-        raw_settings['plugin']
-      else
-        raw_settings
-      end
+      @settings = Setting.plugin_redmine_reminder || {}
       @executed_projects = Set.new
       @request_ip = request_ip
     end
@@ -219,7 +212,8 @@ module RedmineReminder
     end
 
     def check_ip_whitelist
-      whitelist = @settings['ip_whitelist'].to_s.strip
+      plugin_settings = Setting.plugin_redmine_reminder || {}
+      whitelist = plugin_settings['ip_whitelist'].to_s.strip
 
       if whitelist.blank?
         return true

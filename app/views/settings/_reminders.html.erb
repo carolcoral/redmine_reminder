@@ -1,15 +1,7 @@
 <div class="reminder-settings">
   <%
-    raw_settings = Setting.plugin_redmine_reminder || {}
-    # Handle both normal format {"key" => "val"} and nested format {"plugin" => {"key" => "val"}}
-    # that Redmine's standard SettingsController may produce
-    plugin_settings = if raw_settings.key?('plugin') && raw_settings['plugin'].is_a?(Hash)
-      raw_settings['plugin']
-    else
-      raw_settings
-    end
-    Rails.logger.info "[RedmineReminder] View - Raw settings: #{raw_settings.inspect}"
-    Rails.logger.info "[RedmineReminder] View - Resolved settings: #{plugin_settings.inspect}"
+    plugin_settings = Setting.plugin_redmine_reminder || {}
+    Rails.logger.info "[RedmineReminder] View - Loaded settings: #{plugin_settings.inspect}"
     selected_projects = plugin_settings['selected_projects'] || []
 
     # 项目树渲染方法
@@ -40,7 +32,7 @@
       end
 
       label_html = label_tag(checkbox_id, class: 'project-label') do
-        check_box_tag('reminder_setting[selected_projects][]',
+        check_box_tag('settings[plugin][selected_projects][]',
           project.id,
           selected_proj_ids.include?(project.id),
           id: checkbox_id,
@@ -66,13 +58,11 @@
       end
     end
   %>
-  <%= form_tag reminders_settings_path, method: :post do %>
-
     <%# Main Enable Switch %>
     <div class="main-enable-container">
       <div class="enable-row">
         <label class="reminder-settings-enable-label" style="margin-left:0px;width:auto;"><%= l(:reminder_settings_main_enable) %>:</label>
-        <%= select_tag 'reminder_setting[plugin_enabled]',
+        <%= select_tag 'settings[plugin][plugin_enabled]',
               options_for_select([
                 [l(:reminder_settings_enabled), '1'],
                 [l(:reminder_settings_disabled), '0']
@@ -91,7 +81,7 @@
             <th style="width: 30%;"><%= l(:reminder_settings_remind_days) %></th>
             <td>
               <span class="input-group">
-                <%= number_field_tag 'reminder_setting[remind_before_days]',
+                <%= number_field_tag 'settings[plugin][remind_before_days]',
                       plugin_settings['remind_before_days'] || 3,
                       min: 1,
                       size: 5 %>
@@ -104,7 +94,7 @@
             <th><%= l(:reminder_settings_schedule_time) %></th>
             <td>
               <span class="input-group">
-                <%= time_field_tag 'reminder_setting[schedule_time]',
+                <%= time_field_tag 'settings[plugin][schedule_time]',
                       plugin_settings['schedule_time'] || '09:00',
                       class: 'time-picker',
                       step: 60 %>
@@ -116,7 +106,7 @@
             <th><%= l(:reminder_settings_frequency_limit) %></th>
             <td>
               <span class="input-group">
-                <%= number_field_tag 'reminder_setting[frequency_limit]',
+                <%= number_field_tag 'settings[plugin][frequency_limit]',
                       plugin_settings['frequency_limit'] || 7,
                       min: 1,
                       size: 5 %>
@@ -134,7 +124,7 @@
       <legend><%= l(:reminder_settings_ip_whitelist) %></legend>
       <p class="section-desc"><%= l(:reminder_settings_ip_whitelist_desc) %></p>
       <div class="ip-whitelist-container">
-        <%= text_area_tag 'reminder_setting[ip_whitelist]',
+        <%= text_area_tag 'settings[plugin][ip_whitelist]',
               plugin_settings['ip_whitelist'] || '',
               rows: 4,
               placeholder: "192.168.1.1\n10.0.0.0/24\n127.0.0.1",
@@ -223,12 +213,12 @@
       </div>
 
       <div class="template-editor">
-        <%= text_area_tag 'reminder_setting[email_template]',
+        <%= text_area_tag 'settings[plugin][email_template]',
               plugin_settings['email_template'] || ReminderSetting.default_template,
               rows: 15,
               class: 'wiki-edit',
               style: 'width: 100%; font-family: monospace;' %>
-        <%= wikitoolbar_for 'reminder_setting[email_template]' %>
+        <%= wikitoolbar_for 'settings[plugin][email_template]' %>
       </div>
 
       <div class="template-actions" style="margin-top: 10px;">
@@ -244,13 +234,11 @@
     </fieldset>
 
     <div style="margin-top: 15px; text-align: center;">
-      <%= submit_tag l(:button_save), class: 'button-small' %>
       <%= link_to l(:reminder_settings_test_email),
             reminders_test_email_path,
             method: :post,
             class: 'button-small' %>
     </div>
-  <% end %>
 </div>
 
 <div class="modal" id="preview-modal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000;">
@@ -290,90 +278,3 @@
   cursor: default;
 }
 </style>
-
-<script>
-// Intercept Redmine's standard form submission for plugin settings page.
-// When rendered as a partial inside /settings/plugin/redmine_reminder,
-// Redmine wraps everything in its own <form>. Our nested <form> (form_tag)
-// would create invalid nested HTML. Instead, we intercept the outer form's
-// submit and redirect it to our custom save endpoint.
-$(document).ready(function() {
-  var $outerForm = $('#plugin-settings-form, form[action*="settings/plugin/redmine_reminder"]');
-  var $innerForm = $('form[action*="reminders/settings"]');
-
-  if ($outerForm.length > 0 && $innerForm.length > 0) {
-    // Prevent the inner form from being a real <form> to avoid nested forms
-    // Clone the inner form's hidden inputs and move them into the outer form
-    var innerAction = $innerForm.attr('action');
-    var innerMethod = $innerForm.attr('method') || 'post';
-
-    // Change inner form to a div
-    var $innerDiv = $('<div>').html($innerForm.html());
-    $innerDiv.attr('data-action', innerAction);
-    $innerDiv.attr('data-method', innerMethod);
-    $innerForm.replaceWith($innerDiv);
-
-    // Intercept the outer form submission
-    $outerForm.on('submit', function(e) {
-      e.preventDefault();
-
-      // Collect all reminder_setting fields
-      var data = {};
-      $innerDiv.find('input, select, textarea').each(function() {
-        var name = $(this).attr('name');
-        if (!name) return;
-
-        // Skip unchecked checkboxes
-        if ($(this).is(':checkbox') && !$(this).is(':checked')) return;
-
-        if (name.indexOf('reminder_setting[') === 0) {
-          var key = name.match(/reminder_setting\[(.+?)\]/);
-          if (key) {
-            var fieldName = key[1];
-            if (name.endsWith('[]')) {
-              // Array field (e.g., selected_projects)
-              if (!data[fieldName]) data[fieldName] = [];
-              data[fieldName].push($(this).val());
-            } else {
-              data[fieldName] = $(this).val();
-            }
-          }
-        }
-      });
-
-      // Build form data for our custom endpoint
-      var formData = new FormData();
-      $.each(data, function(key, value) {
-        if (Array.isArray(value)) {
-          $.each(value, function(i, v) {
-            formData.append('reminder_setting[' + key + '][]', v);
-          });
-        } else {
-          formData.append('reminder_setting[' + key + ']', value);
-        }
-      });
-
-      // Add authenticity token
-      var token = $('meta[name="csrf-token"]').attr('content');
-      if (token) {
-        formData.append('authenticity_token', token);
-      }
-
-      // Submit to our custom save endpoint
-      $.ajax({
-        url: innerAction,
-        method: innerMethod,
-        data: formData,
-        processData: false,
-        contentType: false,
-        success: function() {
-          window.location.reload();
-        },
-        error: function(xhr) {
-          alert('Save failed: ' + (xhr.responseText || 'Unknown error'));
-        }
-      });
-    });
-  }
-});
-</script>
