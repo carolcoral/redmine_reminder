@@ -64,7 +64,7 @@ function initPreviewModal() {
 }
 
 function previewTemplate() {
-  var template = $('#reminder_setting_email_template').val();
+  var template = $('#settings_plugin_email_template').val();
 
   $.ajax({
     url: '/reminders/preview_template',

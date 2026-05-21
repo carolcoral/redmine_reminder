@@ -1,12 +1,6 @@
 class RemindersController < ApplicationController
   before_action :require_admin
 
-  def settings
-    if request.post? || request.patch?
-      save_settings
-    end
-  end
-
   def test_email
     plugin_settings = Setting.plugin_redmine_reminder || {}
 
@@ -253,52 +247,6 @@ class RemindersController < ApplicationController
     end
 
     true
-  end
-
-  def save_settings
-    Rails.logger.info "[RedmineReminder] Save settings request started"
-    Rails.logger.info "[RedmineReminder] Raw params: #{params.inspect}"
-
-    reminder_params = reminder_params_hash
-    Rails.logger.info "[RedmineReminder] Permitted params: #{reminder_params.inspect}"
-
-    Setting.plugin_redmine_reminder = reminder_params
-    Rails.logger.info "[RedmineReminder] Settings saved successfully: #{Setting.plugin_redmine_reminder.inspect}"
-
-    flash[:notice] = l(:notice_successful_update)
-    redirect_to reminders_settings_path
-  rescue => e
-    Rails.logger.error "[RedmineReminder] Save settings failed: #{e.class} - #{e.message}"
-    Rails.logger.error "[RedmineReminder] Backtrace: #{e.backtrace&.first(5)&.join("\n")}"
-    flash[:error] = "#{e.class}: #{e.message}"
-    redirect_to reminders_settings_path
-  end
-
-  def reminder_params_hash
-    params_hash = params.fetch(:reminder_setting, {})
-    Rails.logger.info "[RedmineReminder] Form params: #{params_hash.inspect}"
-
-    permitted_params = params_hash.permit(
-      :remind_before_days,
-      :schedule_time,
-      :frequency_limit,
-      :email_template,
-      :plugin_enabled,
-      :ip_whitelist,
-      selected_projects: []
-    ).to_h
-
-    Rails.logger.info "[RedmineReminder] After permit: #{permitted_params.inspect}"
-
-    # Keep plugin_enabled as string '1'/'0' for consistency with the view
-    # No conversion needed - keep it as submitted
-
-    permitted_params['selected_projects'] = (permitted_params['selected_projects'] || []).reject(&:blank?).map(&:to_s)
-    permitted_params['remind_before_days'] = permitted_params['remind_before_days'].to_i
-    permitted_params['frequency_limit'] = permitted_params['frequency_limit'].to_i
-
-    Rails.logger.info "[RedmineReminder] Final params: #{permitted_params.inspect}"
-    permitted_params
   end
 
 end
