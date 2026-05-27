@@ -22,12 +22,22 @@ Redmine::Plugin.register :redmine_reminder do
   Rails.application.config.i18n.load_path += locales_for_plugin
 
   Rails.application.config.after_initialize do
-    if defined?(Redmine::Scheduler)
-      Redmine::Scheduler.instance.register_job(
-        '0 * * * * *',
-        -> { RedmineReminder::SchedulerJob.perform_now }
-      ) do |job|
-        Rails.logger.info "RedmineReminder: Scheduled job registered"
+    Thread.new do
+      # 随机延迟启动（避免多 worker 同时触发）
+      sleep rand(5..30)
+      Rails.logger.info "[RedmineReminder] Scheduler thread started"
+
+      loop do
+        begin
+          start_time = Time.current
+          RedmineReminder::SchedulerJob.perform_now
+          elapsed = Time.current - start_time
+          Rails.logger.debug "[RedmineReminder] Scheduler tick completed in #{elapsed.round(2)}s"
+        rescue => e
+          Rails.logger.error "[RedmineReminder] Scheduler error: #{e.class} - #{e.message}"
+        end
+
+        sleep 60
       end
     end
   end
