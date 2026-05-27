@@ -2,7 +2,6 @@ module RedmineReminder
   class Scheduler
     def initialize(request_ip = nil)
       @settings = Setting.plugin_redmine_reminder || {}
-      @executed_projects = Set.new
       @request_ip = request_ip
     end
 
@@ -56,32 +55,32 @@ module RedmineReminder
     def process_all_projects
       project_ids = selected_project_ids
 
-      if project_ids.empty?
-        Project.active.includes(:members, :issues).find_each do |project|
-          process_project(project)
-        end
+      # 收集所有用户在所有项目中的任务（按 user_id 合并）
+      all_user_tasks = {}
+
+      projects_scope = if project_ids.empty?
+        Project.active
       else
-        Project.where(id: project_ids)
-              .active
-              .includes(:members, :issues)
-              .find_each do |project|
-          process_project(project)
-        end
+        Project.where(id: project_ids).active
       end
-    end
 
-    def process_project(project)
-      return if @executed_projects.include?(project.id)
+      projects_scope.includes(:members, :issues).find_each do |project|
+        project_members = get_all_project_members(project)
+        member_tasks = build_member_tasks(project, project_members)
 
-      Rails.logger.info "RedmineReminder: Processing project #{project.name}"
+        member_tasks.each do |user_id, tasks|
+          next if tasks.empty?
+          all_user_tasks[user_id] ||= []
+          all_user_tasks[user_id].concat(tasks)
+        end
 
-      project_members = get_all_project_members(project)
-      member_tasks = build_member_tasks(project, project_members)
+        Rails.logger.info "RedmineReminder: Collected members from project #{project.name}"
+      end
 
-      return if member_tasks.empty?
+      return if all_user_tasks.empty?
 
       # 按 frequency_limit 分批发送，每批 N 个用户，等待 60 秒
-      users_with_tasks = member_tasks.reject { |_user_id, tasks| tasks.empty? }
+      users_with_tasks = all_user_tasks.to_a
       total_users = users_with_tasks.size
       processed = 0
 
@@ -92,7 +91,7 @@ module RedmineReminder
           user = User.find_by(id: user_id)
           next unless user && user.active? && user.mail.present?
 
-          send_reminder(user, tasks, project)
+          send_reminder(user, tasks)
         end
 
         processed += batch.size
@@ -103,9 +102,7 @@ module RedmineReminder
         end
       end
 
-      @executed_projects.add(project.id)
-
-      Rails.logger.info "RedmineReminder: Completed processing project #{project.name}"
+      Rails.logger.info "RedmineReminder: Completed sending all reminders"
     end
 
     def get_all_project_members(project)
@@ -176,7 +173,7 @@ module RedmineReminder
       result
     end
 
-    def send_reminder(user, tasks, project)
+    def send_reminder(user, tasks)
       template = email_template.presence || ReminderSetting.default_template
 
       begin
@@ -191,7 +188,7 @@ module RedmineReminder
         # 恢复设置
         ActionMailer::Base.perform_deliveries = original_perform
 
-        Rails.logger.info "RedmineReminder: Sent reminder to #{user.mail} (#{user.name}) for #{tasks.count} tasks in project #{project.name}"
+        Rails.logger.info "RedmineReminder: Sent reminder to #{user.mail} (#{user.name}) for #{tasks.count} tasks"
         Rails.logger.debug "RedmineReminder: Email subject: #{mail_message.subject}"
       rescue Net::SMTPAuthenticationError => e
         Rails.logger.error "RedmineReminder: SMTP Authentication Failed for #{user.mail}: #{e.message}"

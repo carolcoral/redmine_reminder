@@ -16,8 +16,13 @@ class ReminderMailer < ActionMailer::Base
     @tasks = tasks
     @template = template
 
-    @subject = I18n.t(:reminder_email_subject, project_name: Setting.app_title)
-    @html_body = render_reminder_html
+    # 根据收件人语言偏好设置 I18n locale
+    locale = user.language.presence&.to_sym || I18n.default_locale
+
+    I18n.with_locale(locale) do
+      @subject = I18n.t(:reminder_email_subject, app_title: Setting.app_title)
+      @html_body = render_reminder_html
+    end
 
     # 显式设置所有必要的邮件头
     headers = {
@@ -34,6 +39,7 @@ class ReminderMailer < ActionMailer::Base
     Rails.logger.info "[RedmineReminder]   From: #{headers[:from]}"
     Rails.logger.info "[RedmineReminder]   To: #{headers[:to]}"
     Rails.logger.info "[RedmineReminder]   Subject: #{headers[:subject]}"
+    Rails.logger.info "[RedmineReminder]   Locale: #{locale}"
 
     mail(headers) do |format|
       format.html { render_reminder_html }
@@ -130,11 +136,11 @@ class ReminderMailer < ActionMailer::Base
     <table style="width: 100%; border-collapse: collapse; margin: 15px 0;">
       <thead>
         <tr style="background: #337ab7; color: white;">
-          <th style="padding: 12px; border: 1px solid #ddd; text-align: left;">任务编号</th>
-          <th style="padding: 12px; border: 1px solid #ddd; text-align: left;">任务名称</th>
-          <th style="padding: 12px; border: 1px solid #ddd; text-align: left;">预计完成日期</th>
-          <th style="padding: 12px; border: 1px solid #ddd; text-align: left;">状态</th>
-          <th style="padding: 12px; border: 1px solid #ddd; text-align: left;">优先级</th>
+          <th style="padding: 12px; border: 1px solid #ddd; text-align: left;">#{I18n.t(:reminder_email_table_issue_id)}</th>
+          <th style="padding: 12px; border: 1px solid #ddd; text-align: left;">#{I18n.t(:reminder_email_table_issue_name)}</th>
+          <th style="padding: 12px; border: 1px solid #ddd; text-align: left;">#{I18n.t(:reminder_email_table_due_date)}</th>
+          <th style="padding: 12px; border: 1px solid #ddd; text-align: left;">#{I18n.t(:reminder_email_table_status)}</th>
+          <th style="padding: 12px; border: 1px solid #ddd; text-align: left;">#{I18n.t(:reminder_email_table_priority)}</th>
         </tr>
       </thead>
       <tbody>
@@ -162,8 +168,8 @@ class ReminderMailer < ActionMailer::Base
     #{content}
   </div>
   <div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #ddd; font-size: 12px; color: #666;">
-    <p>此邮件由 Reminder By Carolcoral 提醒插件自动发送，请勿直接回复。</p>
-    <p>发送时间: #{Time.now.strftime('%Y-%m-%d %H:%M:%S %Z')}</p>
+    <p>#{I18n.t(:reminder_email_footer_auto_sent)}</p>
+    <p>#{I18n.t(:reminder_email_footer_sent_time, time: Time.now.strftime('%Y-%m-%d %H:%M:%S %Z'))}</p>
   </div>
 </body>
 </html>
