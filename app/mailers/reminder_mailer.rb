@@ -130,9 +130,9 @@ class ReminderMailer < ActionMailer::Base
     <table style="width: 100%; border-collapse: collapse; margin: 15px 0;">
       <thead>
         <tr style="background: #337ab7; color: white;">
-          <th style="padding: 12px; border: 1px solid #ddd; text-align: left;">ID</th>
-          <th style="padding: 12px; border: 1px solid #ddd; text-align: left;">任务</th>
-          <th style="padding: 12px; border: 1px solid #ddd; text-align: left;">截止日期</th>
+          <th style="padding: 12px; border: 1px solid #ddd; text-align: left;">任务编号</th>
+          <th style="padding: 12px; border: 1px solid #ddd; text-align: left;">任务名称</th>
+          <th style="padding: 12px; border: 1px solid #ddd; text-align: left;">预计完成日期</th>
           <th style="padding: 12px; border: 1px solid #ddd; text-align: left;">状态</th>
           <th style="padding: 12px; border: 1px solid #ddd; text-align: left;">优先级</th>
         </tr>
@@ -162,7 +162,7 @@ class ReminderMailer < ActionMailer::Base
     #{content}
   </div>
   <div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #ddd; font-size: 12px; color: #666;">
-    <p>此邮件由 Redmine 提醒插件自动发送，请勿直接回复。</p>
+    <p>此邮件由 Reminder By Carolcoral 提醒插件自动发送，请勿直接回复。</p>
     <p>发送时间: #{Time.now.strftime('%Y-%m-%d %H:%M:%S %Z')}</p>
   </div>
 </body>
