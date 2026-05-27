@@ -32,7 +32,7 @@
       end
 
       label_html = label_tag(checkbox_id, class: 'project-label') do
-        check_box_tag('settings[plugin][selected_projects][]',
+        check_box_tag('settings[selected_projects][]',
           project.id,
           selected_proj_ids.include?(project.id),
           id: checkbox_id,
@@ -62,7 +62,7 @@
     <div class="main-enable-container">
       <div class="enable-row">
         <label class="reminder-settings-enable-label" style="margin-left:0px;width:auto;"><%= l(:reminder_settings_main_enable) %>:</label>
-        <%= select_tag 'settings[plugin][plugin_enabled]',
+        <%= select_tag 'settings[plugin_enabled]',
               options_for_select([
                 [l(:reminder_settings_enabled), '1'],
                 [l(:reminder_settings_disabled), '0']
@@ -81,7 +81,7 @@
             <th style="width: 30%;"><%= l(:reminder_settings_remind_days) %></th>
             <td>
               <span class="input-group">
-                <%= number_field_tag 'settings[plugin][remind_before_days]',
+                <%= number_field_tag 'settings[remind_before_days]',
                       plugin_settings['remind_before_days'] || 3,
                       min: 1,
                       size: 5 %>
@@ -94,7 +94,7 @@
             <th><%= l(:reminder_settings_schedule_time) %></th>
             <td>
               <span class="input-group">
-                <%= time_field_tag 'settings[plugin][schedule_time]',
+                <%= time_field_tag 'settings[schedule_time]',
                       plugin_settings['schedule_time'] || '09:00',
                       class: 'time-picker',
                       step: 60 %>
@@ -106,7 +106,7 @@
             <th><%= l(:reminder_settings_frequency_limit) %></th>
             <td>
               <span class="input-group">
-                <%= number_field_tag 'settings[plugin][frequency_limit]',
+                <%= number_field_tag 'settings[frequency_limit]',
                       plugin_settings['frequency_limit'] || 7,
                       min: 1,
                       size: 5 %>
@@ -124,7 +124,7 @@
       <legend><%= l(:reminder_settings_ip_whitelist) %></legend>
       <p class="section-desc"><%= l(:reminder_settings_ip_whitelist_desc) %></p>
       <div class="ip-whitelist-container">
-        <%= text_area_tag 'settings[plugin][ip_whitelist]',
+        <%= text_area_tag 'settings[ip_whitelist]',
               plugin_settings['ip_whitelist'] || '',
               rows: 4,
               placeholder: "192.168.1.1\n10.0.0.0/24\n127.0.0.1",
@@ -213,12 +213,12 @@
       </div>
 
       <div class="template-editor">
-        <%= text_area_tag 'settings[plugin][email_template]',
+        <%= text_area_tag 'settings[email_template]',
               plugin_settings['email_template'] || ReminderSetting.default_template,
               rows: 15,
               class: 'wiki-edit',
               style: 'width: 100%; font-family: monospace;' %>
-        <%= wikitoolbar_for 'settings[plugin][email_template]' %>
+        <%= wikitoolbar_for 'settings[email_template]' %>
       </div>
 
       <div class="template-actions" style="margin-top: 10px;">
