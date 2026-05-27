@@ -42,7 +42,7 @@ class ReminderMailer < ActionMailer::Base
     Rails.logger.info "[RedmineReminder]   Locale: #{locale}"
 
     mail(headers) do |format|
-      format.html { render_reminder_html }
+      format.html { @html_body }
     end
   end
 

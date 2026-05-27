@@ -77,6 +77,11 @@ module RedmineReminder
         Rails.logger.info "RedmineReminder: Collected members from project #{project.name}"
       end
 
+      # 按 issue_id 去重（同一用户可能通过不同项目/子项目获得重复任务）
+      all_user_tasks.each do |user_id, tasks|
+        all_user_tasks[user_id] = tasks.uniq { |t| t[:issue_id] }
+      end
+
       return if all_user_tasks.empty?
 
       # 按 frequency_limit 分批发送，每批 N 个用户，等待 60 秒
