@@ -2,6 +2,10 @@
 
 一个 Redmine 插件，用于自动发送任务临期和逾期的提醒邮件。
 
+## 效果图
+![setting-demo-zh.png](static/setting-demo-zh.png)
+![mail-demo-zh.png](static/mail-demo-zh.png)
+
 ## 功能特性
 
 - **定时提醒**：自动向项目成员发送邮件，提醒即将到期或已逾期的任务

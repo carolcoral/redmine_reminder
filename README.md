@@ -2,6 +2,10 @@
 
 A Redmine plugin for automatically sending reminder emails for upcoming and overdue tasks.
 
+## Demo
+![mail-demo-en.png](static/mail-demo-en.png)
+![setting-demo-en.png](static/setting-demo-en.png)
+
 ## Features
 
 - **Scheduled Reminders**: Automatically sends reminder emails to project members for tasks approaching their due date or already overdue
