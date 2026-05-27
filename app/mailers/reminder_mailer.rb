@@ -35,12 +35,6 @@ class ReminderMailer < ActionMailer::Base
       'X-Mailer' => 'RedmineReminder-Plugin'
     }
 
-    Rails.logger.info "[RedmineReminder] Mailer Config:"
-    Rails.logger.info "[RedmineReminder]   From: #{headers[:from]}"
-    Rails.logger.info "[RedmineReminder]   To: #{headers[:to]}"
-    Rails.logger.info "[RedmineReminder]   Subject: #{headers[:subject]}"
-    Rails.logger.info "[RedmineReminder]   Locale: #{locale}"
-
     mail(headers) do |format|
       format.html { @html_body }
     end
@@ -106,8 +100,6 @@ class ReminderMailer < ActionMailer::Base
 
     # 确保 HTML 结构完整
     html = wrap_html_body(html)
-
-    Rails.logger.debug "[RedmineReminder] Rendered HTML length: #{html.length} chars"
 
     html
   end

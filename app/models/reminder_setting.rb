@@ -9,14 +9,6 @@ class ReminderSetting < ActiveRecord::Base
       <p>您好，</p>
       <p>您有以下任务需要关注：</p>
       <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
-        <thead>
-          <tr style="background-color: #f5f5f5;">
-            <th style="padding: 12px; text-align: left; border: 1px solid #ddd;">任务编号</th>
-            <th style="padding: 12px; text-align: left; border: 1px solid #ddd;">任务名称</th>
-            <th style="padding: 12px; text-align: left; border: 1px solid #ddd;">预计完成日期</th>
-            <th style="padding: 12px; text-align: left; border: 1px solid #ddd;">状态</th>
-          </tr>
-        </thead>
         <tbody>
           {{#each tasks}}
           <tr>

@@ -38,7 +38,6 @@ module RedmineReminder
       now = Time.current
 
       unless now.hour == schedule_hour && now.min == schedule_minute
-        Rails.logger.debug "RedmineReminder: Not scheduled time (current: #{now.strftime('%H:%M')}, scheduled: #{schedule_time})"
         return
       end
 
@@ -54,6 +53,8 @@ module RedmineReminder
 
     def process_all_projects
       project_ids = selected_project_ids
+
+      Rails.logger.info "[RedmineReminder] ====== Scheduled reminder task started ======"
 
       # 收集所有用户在所有项目中的任务（按 user_id 合并）
       all_user_tasks = {}
@@ -107,7 +108,7 @@ module RedmineReminder
         end
       end
 
-      Rails.logger.info "RedmineReminder: Completed sending all reminders"
+      Rails.logger.info "[RedmineReminder] ====== Scheduled reminder task completed ======"
     end
 
     def get_all_project_members(project)
@@ -193,8 +194,7 @@ module RedmineReminder
         # 恢复设置
         ActionMailer::Base.perform_deliveries = original_perform
 
-        Rails.logger.info "RedmineReminder: Sent reminder to #{user.mail} (#{user.name}) for #{tasks.count} tasks"
-        Rails.logger.debug "RedmineReminder: Email subject: #{mail_message.subject}"
+        Rails.logger.info "RedmineReminder: Sent to #{user.mail} (#{user.name}) | tasks: #{tasks.map { |t| "#{t[:issue_id]}-#{t[:issue_name]}" }.join(', ')}"
       rescue Net::SMTPAuthenticationError => e
         Rails.logger.error "RedmineReminder: SMTP Authentication Failed for #{user.mail}: #{e.message}"
       rescue Net::SMTPFatalError => e

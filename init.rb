@@ -29,10 +29,7 @@ Redmine::Plugin.register :redmine_reminder do
 
       loop do
         begin
-          start_time = Time.current
           RedmineReminder::SchedulerJob.perform_now
-          elapsed = Time.current - start_time
-          Rails.logger.debug "[RedmineReminder] Scheduler tick completed in #{elapsed.round(2)}s"
         rescue => e
           Rails.logger.error "[RedmineReminder] Scheduler error: #{e.class} - #{e.message}"
         end
