@@ -54,14 +54,14 @@ module RedmineReminder
     end
 
     def process_all_projects
-      selected_project_ids = selected_project_ids
+      project_ids = selected_project_ids
 
-      if selected_project_ids.empty?
+      if project_ids.empty?
         Project.active.includes(:members, :issues).find_each do |project|
           process_project(project)
         end
       else
-        Project.where(id: selected_project_ids)
+        Project.where(id: project_ids)
               .active
               .includes(:members, :issues)
               .find_each do |project|
