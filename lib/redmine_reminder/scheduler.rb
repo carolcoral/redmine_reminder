@@ -142,10 +142,7 @@ module RedmineReminder
       member_tasks.each do |user_id, _memberships|
         result[user_id] = []
 
-        user = User.find_by(id: user_id)
-        next unless user
-
-        user.issues
+        Issue.where(assigned_to_id: user_id)
             .where(project_id: project_and_descendants_ids)
             .where.not(status_id: completed_statuses)
             .where("due_date IS NOT NULL")
