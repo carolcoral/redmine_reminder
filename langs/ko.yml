@@ -47,6 +47,7 @@ ko:
   reminder_email_subject: "[알림 - %{app_title}] 확인이 필요한 작업이 있습니다"
   reminder_test_email_sent: "테스트 메일이 전송되었습니다"
   reminder_test_email_failed: "테스트 메일 전송에 실패했습니다"
+  reminder_test_email_ip_denied: "현재 서버 IP가 허용 목록에 없어 테스트 메일이 차단되었습니다"
   reminder_processing: "프로젝트 알림 처리 중"
   reminder_sent: "사용자에게 알림을 보냈습니다"
   reminder_email_table_issue_id: "이슈 번호"

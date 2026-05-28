@@ -47,6 +47,7 @@ fr:
   reminder_email_subject: "[Rappel - %{app_title}] Des demandes nécessitent votre attention"
   reminder_test_email_sent: "Email de test envoyé avec succès"
   reminder_test_email_failed: "Échec de l'envoi de l'email de test"
+  reminder_test_email_ip_denied: "L'IP du serveur actuel n'est pas dans la liste blanche, email de test bloqué"
   reminder_processing: "Traitement du rappel pour le projet"
   reminder_sent: "Rappel envoyé aux utilisateurs"
   reminder_email_table_issue_id: "N° demande"

@@ -47,6 +47,7 @@ zh:
   reminder_email_subject: "【提醒 - %{app_title}】您有任务需要关注"
   reminder_test_email_sent: "测试邮件发送成功"
   reminder_test_email_failed: "测试邮件发送失败"
+  reminder_test_email_ip_denied: "当前服务器IP不在白名单范围内，无法发送测试邮件"
   reminder_processing: "正在处理项目提醒"
   reminder_sent: "已向用户发送提醒"
   reminder_email_table_issue_id: "任务编号"

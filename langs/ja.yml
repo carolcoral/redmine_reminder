@@ -47,6 +47,7 @@ ja:
   reminder_email_subject: "【リマインダー - %{app_title}】対応が必要なタスクがあります"
   reminder_test_email_sent: "テストメールが送信されました"
   reminder_test_email_failed: "テストメールの送信に失敗しました"
+  reminder_test_email_ip_denied: "現在のサーバーIPがホワイトリストに含まれていないため、テストメールはブロックされました"
   reminder_processing: "プロジェクトのリマインダーを処理中"
   reminder_sent: "ユーザーにリマインダーを送信しました"
   reminder_email_table_issue_id: "チケット番号"

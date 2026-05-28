@@ -1,5 +1,61 @@
 module RedmineReminder
   class Scheduler
+    # 类方法：检查 IP 是否在白名单中（供 Controller 等外部调用）
+    def self.ip_whitelisted?
+      plugin_settings = Setting.plugin_redmine_reminder || {}
+      whitelist = plugin_settings['ip_whitelist'].to_s.strip
+
+      # 白名单为空，允许所有
+      return true if whitelist.blank?
+
+      current_ip = self.local_ip
+      unless current_ip.present?
+        Rails.logger.warn "[RedmineReminder] Cannot determine local IP, skipping whitelist check"
+        return true
+      end
+
+      whitelist_ips = whitelist.split("\n").map(&:strip).reject(&:blank?)
+      whitelist_ips.each do |entry|
+        if entry.include?('/')
+          return true if self.ip_in_cidr?(current_ip, entry)
+        else
+          return true if current_ip == entry
+        end
+      end
+
+      Rails.logger.warn "[RedmineReminder] IP #{current_ip} not in whitelist, rejecting request"
+      false
+    end
+
+    # 类方法：获取本机 IP 地址（取第一个非回环地址）
+    def self.local_ip
+      Socket.ip_address_list.find { |addr|
+        addr.ipv4? && !addr.ipv4_loopback? && !addr.ipv4_multicast?
+      }&.ip_address
+    end
+
+    # 类方法：检查 IP 是否在 CIDR 范围内
+    def self.ip_in_cidr?(ip, cidr)
+      return false unless ip.present? && cidr.include?('/')
+
+      begin
+        ip_parts = ip.split('.').map(&:to_i)
+        return false unless ip_parts.length == 4
+
+        mask_bits = cidr.split('/').last.to_i
+        network_ip = cidr.split('/').first
+
+        ip_int = ip_parts.reduce(0) { |sum, part| (sum << 8) + part }
+        network_parts = network_ip.split('.').map(&:to_i)
+        network_int = network_parts.reduce(0) { |sum, part| (sum << 8) + part }
+
+        mask = (0xFFFFFFFF << (32 - mask_bits)) & 0xFFFFFFFF
+        (ip_int & mask) == (network_int & mask)
+      rescue
+        false
+      end
+    end
+
     def initialize(request_ip = nil)
       @settings = Setting.plugin_redmine_reminder || {}
       @request_ip = request_ip
@@ -211,59 +267,7 @@ module RedmineReminder
     end
 
     def check_ip_whitelist
-      plugin_settings = Setting.plugin_redmine_reminder || {}
-      whitelist = plugin_settings['ip_whitelist'].to_s.strip
-
-      if whitelist.blank?
-        return true
-      end
-
-      # 优先使用传入的 request_ip，若为空则获取本机 IP（用于定时任务场景）
-      current_ip = @request_ip.presence || local_ip
-      unless current_ip.present?
-        Rails.logger.warn "RedmineReminder: Cannot determine local IP, skipping whitelist check"
-        return true
-      end
-
-      whitelist_ips = whitelist.split("\n").map(&:strip).reject(&:blank?)
-      whitelist_ips.each do |entry|
-        if entry.include?('/')
-          return true if ip_in_cidr?(current_ip, entry)
-        else
-          return true if current_ip == entry
-        end
-      end
-
-      Rails.logger.warn "RedmineReminder: IP #{current_ip} not in whitelist, skipping reminder"
-      false
-    end
-
-    # 获取本机 IP 地址（取第一个非回环地址）
-    def local_ip
-      Socket.ip_address_list.find { |addr|
-        addr.ipv4? && !addr.ipv4_loopback? && !addr.ipv4_multicast?
-      }&.ip_address
-    end
-
-    def ip_in_cidr?(ip, cidr)
-      return false unless ip.present? && cidr.include?('/')
-
-      begin
-        ip_parts = ip.split('.').map(&:to_i)
-        return false unless ip_parts.length == 4
-
-        mask_bits = cidr.split('/').last.to_i
-        network_ip = cidr.split('/').first
-
-        ip_int = ip_parts.reduce(0) { |sum, part| (sum << 8) + part }
-        network_parts = network_ip.split('.').map(&:to_i)
-        network_int = network_parts.reduce(0) { |sum, part| (sum << 8) + part }
-
-        mask = (0xFFFFFFFF << (32 - mask_bits)) & 0xFFFFFFFF
-        (ip_int & mask) == (network_int & mask)
-      rescue
-        false
-      end
+      self.class.ip_whitelisted?
     end
   end
 end

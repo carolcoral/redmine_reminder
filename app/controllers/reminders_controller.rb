@@ -6,6 +6,12 @@ class RemindersController < ApplicationController
 
     Rails.logger.info "[RedmineReminder] Test email requested by #{User.current.name} (#{User.current.mail}) from #{request.ip}"
 
+    unless RedmineReminder::Scheduler.ip_whitelisted?
+      flash[:error] = l(:reminder_test_email_ip_denied)
+      redirect_to '/settings/plugin/redmine_reminder'
+      return
+    end
+
     validate_smtp_settings!
 
     begin

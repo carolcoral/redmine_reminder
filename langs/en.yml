@@ -47,6 +47,7 @@ en:
   reminder_email_subject: "[Reminder - %{app_title}] Tasks need your attention"
   reminder_test_email_sent: "Test email sent successfully"
   reminder_test_email_failed: "Failed to send test email"
+  reminder_test_email_ip_denied: "Current server IP is not in the whitelist, test email blocked"
   reminder_processing: "Processing reminder for project"
   reminder_sent: "Reminder sent to users"
   reminder_email_table_issue_id: "Issue ID"
