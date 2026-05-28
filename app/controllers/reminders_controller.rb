@@ -1,5 +1,6 @@
 class RemindersController < ApplicationController
   before_action :require_admin
+  before_action :log_request
 
   def test_email
     plugin_settings = Setting.plugin_redmine_reminder || {}
@@ -128,6 +129,11 @@ class RemindersController < ApplicationController
   end
 
   private
+
+  def log_request
+    local_ip = RedmineReminder::Scheduler.local_ip rescue 'unknown'
+    Rails.logger.info "[RedmineReminder] >>> Incoming #{request.method} #{request.fullpath} | request.ip=#{request.ip} | container.ip=#{local_ip} | action=#{action_name} | user=#{User.current&.login}"
+  end
 
   def validate_smtp_settings!
     smtp = ActionMailer::Base.smtp_settings
