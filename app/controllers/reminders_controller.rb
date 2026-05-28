@@ -3,11 +3,13 @@ class RemindersController < ApplicationController
 
   def test_email
     plugin_settings = Setting.plugin_redmine_reminder || {}
+    local_ip = RedmineReminder::Scheduler.local_ip
 
-    Rails.logger.info "[RedmineReminder] Test email requested by #{User.current.name} (#{User.current.mail}) from #{request.ip}"
+    Rails.logger.info "[RedmineReminder] ====== Test email START ======"
+    Rails.logger.info "[RedmineReminder] Request from #{request.ip}, container IP: #{local_ip}, user: #{User.current.name} (#{User.current.mail})"
 
     unless RedmineReminder::Scheduler.ip_whitelisted?
-      Rails.logger.warn "[RedmineReminder] Test email blocked - IP whitelist check failed"
+      Rails.logger.warn "[RedmineReminder] Test email BLOCKED - container IP #{local_ip} not in whitelist"
       flash[:error] = l(:reminder_test_email_ip_denied)
       redirect_to '/settings/plugin/redmine_reminder'
       return
@@ -55,11 +57,14 @@ class RemindersController < ApplicationController
         deliveries = mail_message.deliveries rescue []
         if deliveries.empty?
           Rails.logger.warn "[RedmineReminder] WARNING: Deliveries array is empty - email may not have been sent!"
+        else
+          Rails.logger.info "[RedmineReminder] Delivery result: #{deliveries.inspect}"
         end
+      else
+        Rails.logger.warn "[RedmineReminder] WARNING: deliver_now returned falsy value: #{delivery_result.inspect}"
       end
 
       Rails.logger.info "[RedmineReminder] Test email sent successfully to #{User.current.mail}"
-
       flash[:notice] = l(:reminder_test_email_sent)
 
     rescue Net::SMTPAuthenticationError => e
@@ -80,6 +85,7 @@ class RemindersController < ApplicationController
       flash[:error] = "#{l(:reminder_test_email_failed)}: #{e.message}"
     end
 
+    Rails.logger.info "[RedmineReminder] ====== Test email END ======"
     redirect_to '/settings/plugin/redmine_reminder'
   end
 

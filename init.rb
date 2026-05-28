@@ -25,7 +25,14 @@ Redmine::Plugin.register :redmine_reminder do
     Thread.new do
       # 随机延迟启动（避免多 worker 同时触发）
       sleep rand(5..30)
-      Rails.logger.info "[RedmineReminder] Scheduler thread started"
+
+      local_ip = begin
+        Socket.ip_address_list.find { |addr| addr.ipv4? && !addr.ipv4_loopback? && !addr.ipv4_multicast? }&.ip_address
+      rescue
+        'unknown'
+      end
+
+      Rails.logger.info "[RedmineReminder] Scheduler thread started on container IP: #{local_ip}"
 
       loop do
         begin
