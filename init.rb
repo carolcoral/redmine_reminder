@@ -3,7 +3,7 @@ Redmine::Plugin.register :redmine_reminder do
   author 'carolcoral'
   author_url 'https://github.com/carolcoral'
   description 'A plugin for sending reminder emails for upcoming and overdue tasks'
-  version '1.0.0'
+  version '1.0.1'
   url 'https://github.com/carolcoral/redmine_reminder'
 
   permission :manage_reminder_settings, {}
