@@ -6,7 +6,10 @@ module RedmineReminder
       whitelist = plugin_settings['ip_whitelist'].to_s.strip
 
       # 白名单为空，允许所有
-      return true if whitelist.blank?
+      if whitelist.blank?
+        Rails.logger.info "[RedmineReminder] IP whitelist is empty, allowing all"
+        return true
+      end
 
       current_ip = self.local_ip
       unless current_ip.present?
@@ -14,16 +17,24 @@ module RedmineReminder
         return true
       end
 
+      Rails.logger.info "[RedmineReminder] Checking IP #{current_ip} against whitelist: #{whitelist.split("\n").map(&:strip).reject(&:blank?).join(', ')}"
+
       whitelist_ips = whitelist.split("\n").map(&:strip).reject(&:blank?)
       whitelist_ips.each do |entry|
         if entry.include?('/')
-          return true if self.ip_in_cidr?(current_ip, entry)
+          if self.ip_in_cidr?(current_ip, entry)
+            Rails.logger.info "[RedmineReminder] IP #{current_ip} matches CIDR #{entry}, whitelist check passed"
+            return true
+          end
         else
-          return true if current_ip == entry
+          if current_ip == entry
+            Rails.logger.info "[RedmineReminder] IP #{current_ip} matches whitelist entry #{entry}, whitelist check passed"
+            return true
+          end
         end
       end
 
-      Rails.logger.warn "[RedmineReminder] IP #{current_ip} not in whitelist, rejecting request"
+      Rails.logger.warn "[RedmineReminder] IP #{current_ip} NOT in whitelist, request rejected"
       false
     end
 
@@ -87,13 +98,23 @@ module RedmineReminder
     end
 
     def run
-      return unless enabled?
-      return unless check_ip_whitelist
+      Rails.logger.info "[RedmineReminder] Scheduler tick - checking conditions..."
+
+      unless enabled?
+        Rails.logger.info "[RedmineReminder] Plugin is disabled, skipping"
+        return
+      end
+
+      unless check_ip_whitelist
+        Rails.logger.info "[RedmineReminder] IP whitelist check failed, skipping this tick"
+        return
+      end
 
       schedule_hour, schedule_minute = schedule_time_minutes
       now = Time.current
 
       unless now.hour == schedule_hour && now.min == schedule_minute
+        Rails.logger.info "[RedmineReminder] Current time #{now.strftime('%H:%M')} != schedule time #{format('%02d:%02d', schedule_hour, schedule_minute)}, skipping"
         return
       end
 
