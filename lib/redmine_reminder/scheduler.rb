@@ -218,19 +218,31 @@ module RedmineReminder
         return true
       end
 
-      return true unless @request_ip.present?
+      # 优先使用传入的 request_ip，若为空则获取本机 IP（用于定时任务场景）
+      current_ip = @request_ip.presence || local_ip
+      unless current_ip.present?
+        Rails.logger.warn "RedmineReminder: Cannot determine local IP, skipping whitelist check"
+        return true
+      end
 
       whitelist_ips = whitelist.split("\n").map(&:strip).reject(&:blank?)
       whitelist_ips.each do |entry|
         if entry.include?('/')
-          return true if ip_in_cidr?(@request_ip, entry)
+          return true if ip_in_cidr?(current_ip, entry)
         else
-          return true if @request_ip == entry
+          return true if current_ip == entry
         end
       end
 
-      Rails.logger.warn "RedmineReminder: IP #{@request_ip} not in whitelist, skipping reminder"
+      Rails.logger.warn "RedmineReminder: IP #{current_ip} not in whitelist, skipping reminder"
       false
+    end
+
+    # 获取本机 IP 地址（取第一个非回环地址）
+    def local_ip
+      Socket.ip_address_list.find { |addr|
+        addr.ipv4? && !addr.ipv4_loopback? && !addr.ipv4_multicast?
+      }&.ip_address
     end
 
     def ip_in_cidr?(ip, cidr)
