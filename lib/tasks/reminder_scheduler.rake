@@ -4,6 +4,11 @@ namespace :redmine_reminder do
   desc 'Send reminder emails for upcoming and overdue tasks'
   task send_reminders: :environment do
     puts "Starting reminder task..."
+    plugin_settings = Setting.plugin_redmine_reminder || {}
+    unless plugin_settings['plugin_enabled'] == '1' || plugin_settings['plugin_enabled'] == true
+      puts "Plugin is disabled, skipping."
+      next
+    end
     scheduler = RedmineReminder::Scheduler.new
     scheduler.run
     puts "Reminder task completed."

@@ -54,19 +54,16 @@ class RemindersController < ApplicationController
 
       ActionMailer::Base.perform_deliveries = original_perform
 
-      if delivery_result
-        deliveries = mail_message.deliveries rescue []
-        if deliveries.empty?
-          Rails.logger.warn "[RedmineReminder] WARNING: Deliveries array is empty - email may not have been sent!"
-        else
-          Rails.logger.info "[RedmineReminder] Delivery result: #{deliveries.inspect}"
-        end
-      else
-        Rails.logger.warn "[RedmineReminder] WARNING: deliver_now returned falsy value: #{delivery_result.inspect}"
-      end
+      # 根据实际发送结果判断是否成功
+      success = mail_sent_successfully?(mail_message, delivery_result)
 
-      Rails.logger.info "[RedmineReminder] Test email sent successfully to #{User.current.mail}"
-      flash[:notice] = l(:reminder_test_email_sent)
+      if success
+        Rails.logger.info "[RedmineReminder] Test email sent successfully to #{User.current.mail}"
+        flash[:notice] = l(:reminder_test_email_sent)
+      else
+        Rails.logger.warn "[RedmineReminder] WARNING: Test email to #{User.current.mail} may not have been delivered - result: #{delivery_result.inspect}"
+        flash[:warning] = "#{l(:reminder_test_email_sent)} - 但邮件可能未实际投递，请检查邮件服务器配置"
+      end
 
     rescue Net::SMTPAuthenticationError => e
       Rails.logger.error "[RedmineReminder] SMTP Auth Error: #{e.message}"
@@ -129,6 +126,14 @@ class RemindersController < ApplicationController
   end
 
   private
+
+  # 检查邮件是否真正发送成功
+  def mail_sent_successfully?(mail_message, result)
+    return false if result.nil?
+    deliveries = ActionMailer::Base.deliveries
+    return true if deliveries.include?(mail_message)
+    ActionMailer::Base.delivery_method != :test
+  end
 
   def log_request
     local_ip = RedmineReminder::Scheduler.local_ip rescue 'unknown'

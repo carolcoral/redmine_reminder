@@ -73,7 +73,10 @@ module RedmineReminder
     end
 
     def enabled?
-      @settings['plugin_enabled'] == '1' || @settings['plugin_enabled'] == true
+      # 检查 plugin_enabled 是否为 '1' 或 true（支持字符串和布尔值）
+      # 任何非 '1' / 非 true 的值（包括 '0', false, nil）都视为禁用
+      val = @settings['plugin_enabled']
+      val == '1' || val == true
     end
 
     def remind_before_days
@@ -271,7 +274,12 @@ module RedmineReminder
         # 恢复设置
         ActionMailer::Base.perform_deliveries = original_perform
 
-        Rails.logger.info "RedmineReminder: Sent to #{user.mail} (#{user.name}) | tasks: #{tasks.map { |t| "#{t[:issue_id]}-#{t[:issue_name]}" }.join(', ')}"
+        # 根据实际发送结果判断是否成功
+        if mail_sent_successfully?(mail_message, result)
+          Rails.logger.info "RedmineReminder: Sent to #{user.mail} (#{user.name}) | tasks: #{tasks.map { |t| "#{t[:issue_id]}-#{t[:issue_name]}" }.join(', ')}"
+        else
+          Rails.logger.error "RedmineReminder: Email to #{user.mail} (#{user.name}) may not have been delivered - delivery result: #{result.inspect}"
+        end
       rescue Net::SMTPAuthenticationError => e
         Rails.logger.error "RedmineReminder: SMTP Authentication Failed for #{user.mail}: #{e.message}"
       rescue Net::SMTPFatalError => e
@@ -281,6 +289,17 @@ module RedmineReminder
       rescue => e
         Rails.logger.error "RedmineReminder: Failed to send email to #{user.mail}: #{e.class} - #{e.message}"
       end
+    end
+
+    # 检查邮件是否真正发送成功
+    def mail_sent_successfully?(mail_message, result)
+      return false if result.nil?
+      # ActionMailer::Base.deliveries 中应该包含该邮件
+      deliveries = ActionMailer::Base.deliveries
+      return true if deliveries.include?(mail_message)
+      # 如果 delivery_method 不是 :test（无法通过 deliveries 判断），
+      # 只要 result 不为 nil/false 就认为发送成功
+      ActionMailer::Base.delivery_method != :test
     end
 
     def issue_url(issue)
