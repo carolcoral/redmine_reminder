@@ -265,20 +265,13 @@ module RedmineReminder
       begin
         mail_message = ReminderMailer.send_reminder_email(user, tasks, template)
 
-        # 确保执行发送
-        original_perform = ActionMailer::Base.perform_deliveries
-        ActionMailer::Base.perform_deliveries = true
+        # 发送邮件并捕获 SMTP 响应
+        result = deliver_and_capture_response(mail_message)
 
-        result = mail_message.deliver_now
-
-        # 恢复设置
-        ActionMailer::Base.perform_deliveries = original_perform
-
-        # 根据实际发送结果判断是否成功
-        if mail_sent_successfully?(mail_message, result)
-          Rails.logger.info "RedmineReminder: Sent to #{user.mail} (#{user.name}) | tasks: #{tasks.map { |t| "#{t[:issue_id]}-#{t[:issue_name]}" }.join(', ')}"
+        if result[:success]
+          Rails.logger.info "RedmineReminder: Sent to #{user.mail} (#{user.name}) | SMTP response: #{result[:response]} | tasks: #{tasks.map { |t| "#{t[:issue_id]}-#{t[:issue_name]}" }.join(', ')}"
         else
-          Rails.logger.error "RedmineReminder: Email to #{user.mail} (#{user.name}) may not have been delivered - delivery result: #{result.inspect}"
+          Rails.logger.error "RedmineReminder: Email to #{user.mail} (#{user.name}) may not have been delivered - SMTP response: #{result[:response]}"
         end
       rescue Net::SMTPAuthenticationError => e
         Rails.logger.error "RedmineReminder: SMTP Authentication Failed for #{user.mail}: #{e.message}"
@@ -291,15 +284,49 @@ module RedmineReminder
       end
     end
 
-    # 检查邮件是否真正发送成功
-    def mail_sent_successfully?(mail_message, result)
-      return false if result.nil?
-      # ActionMailer::Base.deliveries 中应该包含该邮件
-      deliveries = ActionMailer::Base.deliveries
-      return true if deliveries.include?(mail_message)
-      # 如果 delivery_method 不是 :test（无法通过 deliveries 判断），
-      # 只要 result 不为 nil/false 就认为发送成功
-      ActionMailer::Base.delivery_method != :test
+    # 发送邮件并捕获 SMTP 服务器响应结果
+    def deliver_and_capture_response(mail_message)
+      response = nil
+      success = false
+
+      begin
+        # 临时启用 return_response 以捕获 SMTP 服务器响应
+        smtp_settings = ActionMailer::Base.smtp_settings
+        original_return_response = smtp_settings[:return_response]
+        smtp_settings[:return_response] = true
+
+        # 强制发送（绕过 perform_deliveries 检查）
+        result = mail_message.deliver!
+
+        # 恢复原始设置
+        smtp_settings[:return_response] = original_return_response
+
+        # deliver! 在 return_response: true 时返回 SMTP 响应字符串
+        if result.is_a?(String) && result.present?
+          response = result
+          # SMTP 成功响应以 250 或 251 开头
+          success = result.start_with?('250') || result.start_with?('251')
+        elsif result.respond_to?(:delivered?) && result.delivered?
+          response = '250 OK (delivered)'
+          success = true
+        else
+          response = result.inspect
+          success = false
+        end
+      rescue Net::SMTPAuthenticationError, Net::SMTPFatalError, Net::SMTPSyntaxError,
+             Errno::ECONNREFUSED, Errno::ETIMEDOUT => e
+        smtp_settings[:return_response] = original_return_response if smtp_settings
+        response = "#{e.class}: #{e.message}"
+        success = false
+        raise
+      rescue => e
+        smtp_settings[:return_response] = original_return_response if smtp_settings
+        response = "#{e.class}: #{e.message}"
+        success = false
+        raise
+      end
+
+      { success: success, response: response }
     end
 
     def issue_url(issue)

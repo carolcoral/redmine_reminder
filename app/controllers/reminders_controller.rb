@@ -47,21 +47,14 @@ class RemindersController < ApplicationController
       smtp_settings = ActionMailer::Base.smtp_settings
       Rails.logger.debug "[RedmineReminder] SMTP: #{smtp_settings[:address]}:#{smtp_settings[:port]} auth=#{smtp_settings[:authentication] || 'none'} from=#{smtp_settings[:from] || Setting.mail_from || 'N/A'}"
 
-      original_perform = ActionMailer::Base.perform_deliveries
-      ActionMailer::Base.perform_deliveries = true
+      # 发送邮件并捕获 SMTP 响应
+      result = deliver_and_capture_response(mail_message)
 
-      delivery_result = mail_message.deliver_now
-
-      ActionMailer::Base.perform_deliveries = original_perform
-
-      # 根据实际发送结果判断是否成功
-      success = mail_sent_successfully?(mail_message, delivery_result)
-
-      if success
-        Rails.logger.info "[RedmineReminder] Test email sent successfully to #{User.current.mail}"
+      if result[:success]
+        Rails.logger.info "[RedmineReminder] Test email sent successfully to #{User.current.mail} | SMTP response: #{result[:response]}"
         flash[:notice] = l(:reminder_test_email_sent)
       else
-        Rails.logger.warn "[RedmineReminder] WARNING: Test email to #{User.current.mail} may not have been delivered - result: #{delivery_result.inspect}"
+        Rails.logger.warn "[RedmineReminder] WARNING: Test email to #{User.current.mail} may not have been delivered | SMTP response: #{result[:response]}"
         flash[:warning] = "#{l(:reminder_test_email_sent)} - 但邮件可能未实际投递，请检查邮件服务器配置"
       end
 
@@ -127,12 +120,44 @@ class RemindersController < ApplicationController
 
   private
 
-  # 检查邮件是否真正发送成功
-  def mail_sent_successfully?(mail_message, result)
-    return false if result.nil?
-    deliveries = ActionMailer::Base.deliveries
-    return true if deliveries.include?(mail_message)
-    ActionMailer::Base.delivery_method != :test
+  # 发送邮件并捕获 SMTP 服务器响应结果
+  def deliver_and_capture_response(mail_message)
+    response = nil
+    success = false
+
+    begin
+      smtp_settings = ActionMailer::Base.smtp_settings
+      original_return_response = smtp_settings[:return_response]
+      smtp_settings[:return_response] = true
+
+      result = mail_message.deliver!
+
+      smtp_settings[:return_response] = original_return_response
+
+      if result.is_a?(String) && result.present?
+        response = result
+        success = result.start_with?('250') || result.start_with?('251')
+      elsif result.respond_to?(:delivered?) && result.delivered?
+        response = '250 OK (delivered)'
+        success = true
+      else
+        response = result.inspect
+        success = false
+      end
+    rescue Net::SMTPAuthenticationError, Net::SMTPFatalError, Net::SMTPSyntaxError,
+           Errno::ECONNREFUSED, Errno::ETIMEDOUT => e
+      smtp_settings[:return_response] = original_return_response if smtp_settings
+      response = "#{e.class}: #{e.message}"
+      success = false
+      raise
+    rescue => e
+      smtp_settings[:return_response] = original_return_response if smtp_settings
+      response = "#{e.class}: #{e.message}"
+      success = false
+      raise
+    end
+
+    { success: success, response: response }
   end
 
   def log_request
