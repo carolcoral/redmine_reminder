@@ -45,7 +45,7 @@ class RemindersController < ApplicationController
       )
 
       smtp_settings = ActionMailer::Base.smtp_settings
-      Rails.logger.info "[RedmineReminder] SMTP: #{smtp_settings[:address]}:#{smtp_settings[:port]} auth=#{smtp_settings[:authentication] || 'none'} from=#{smtp_settings[:from] || Setting.mail_from || 'N/A'}"
+      Rails.logger.debug "[RedmineReminder] SMTP: #{smtp_settings[:address]}:#{smtp_settings[:port]} auth=#{smtp_settings[:authentication] || 'none'} from=#{smtp_settings[:from] || Setting.mail_from || 'N/A'}"
 
       original_perform = ActionMailer::Base.perform_deliveries
       ActionMailer::Base.perform_deliveries = true
@@ -137,7 +137,7 @@ class RemindersController < ApplicationController
 
   def log_request
     local_ip = RedmineReminder::Scheduler.local_ip rescue 'unknown'
-    Rails.logger.info "[RedmineReminder] >>> Incoming #{request.method} #{request.fullpath} | request.ip=#{request.ip} | container.ip=#{local_ip} | action=#{action_name} | user=#{User.current&.login}"
+    Rails.logger.debug "[RedmineReminder] >>> Incoming #{request.method} #{request.fullpath} | request.ip=#{request.ip} | container.ip=#{local_ip} | action=#{action_name} | user=#{User.current&.login}"
   end
 
   def validate_smtp_settings!
@@ -164,7 +164,7 @@ class RemindersController < ApplicationController
     from_addr = smtp[:from] || Setting.mail_from
     if from_addr.blank?
       issues << "发件人地址未配置 (mail_from)"
-      Rails.logger.warn "[RedmineReminder] From address: NOT CONFIGURED"
+      Rails.logger.debug "[RedmineReminder] From address: NOT CONFIGURED"
     end
 
     recipient = User.current.mail

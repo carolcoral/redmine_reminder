@@ -54,7 +54,7 @@ class RedmineReminder::SchedulerJob
   def self.perform_now
     plugin_settings = Setting.plugin_redmine_reminder || {}
     unless plugin_settings['plugin_enabled'] == '1' || plugin_settings['plugin_enabled'] == true
-      Rails.logger.info "[RedmineReminder] SchedulerJob: Plugin is disabled, skipping execution"
+      Rails.logger.debug "[RedmineReminder] SchedulerJob: Plugin is disabled, skipping execution"
       return
     end
     RedmineReminder::Scheduler.new.run

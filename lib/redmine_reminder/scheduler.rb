@@ -7,28 +7,28 @@ module RedmineReminder
 
       # 白名单为空，允许所有
       if whitelist.blank?
-        Rails.logger.info "[RedmineReminder] IP whitelist is empty, allowing all"
+        Rails.logger.debug "[RedmineReminder] IP whitelist is empty, allowing all"
         return true
       end
 
       current_ip = self.local_ip
       unless current_ip.present?
-        Rails.logger.warn "[RedmineReminder] Cannot determine local IP, skipping whitelist check"
+        Rails.logger.debug "[RedmineReminder] Cannot determine local IP, skipping whitelist check"
         return true
       end
 
-      Rails.logger.info "[RedmineReminder] Checking IP #{current_ip} against whitelist: #{whitelist.split("\n").map(&:strip).reject(&:blank?).join(', ')}"
+      Rails.logger.debug "[RedmineReminder] Checking IP #{current_ip} against whitelist: #{whitelist.split("\n").map(&:strip).reject(&:blank?).join(', ')}"
 
       whitelist_ips = whitelist.split("\n").map(&:strip).reject(&:blank?)
       whitelist_ips.each do |entry|
         if entry.include?('/')
           if self.ip_in_cidr?(current_ip, entry)
-            Rails.logger.info "[RedmineReminder] IP #{current_ip} matches CIDR #{entry}, whitelist check passed"
+            Rails.logger.debug "[RedmineReminder] IP #{current_ip} matches CIDR #{entry}, whitelist check passed"
             return true
           end
         else
           if current_ip == entry
-            Rails.logger.info "[RedmineReminder] IP #{current_ip} matches whitelist entry #{entry}, whitelist check passed"
+            Rails.logger.debug "[RedmineReminder] IP #{current_ip} matches whitelist entry #{entry}, whitelist check passed"
             return true
           end
         end
@@ -101,15 +101,15 @@ module RedmineReminder
     end
 
     def run
-      Rails.logger.info "[RedmineReminder] Scheduler tick - checking conditions..."
+      Rails.logger.debug "[RedmineReminder] Scheduler tick - checking conditions..."
 
       unless enabled?
-        Rails.logger.info "[RedmineReminder] Plugin is disabled, skipping"
+        Rails.logger.debug "[RedmineReminder] Plugin is disabled, skipping"
         return
       end
 
       unless check_ip_whitelist
-        Rails.logger.info "[RedmineReminder] IP whitelist check failed, skipping this tick"
+        Rails.logger.debug "[RedmineReminder] IP whitelist check failed, skipping this tick"
         return
       end
 
@@ -117,7 +117,7 @@ module RedmineReminder
       now = Time.current
 
       unless now.hour == schedule_hour && now.min == schedule_minute
-        Rails.logger.info "[RedmineReminder] Current time #{now.strftime('%H:%M')} != schedule time #{format('%02d:%02d', schedule_hour, schedule_minute)}, skipping"
+        Rails.logger.debug "[RedmineReminder] Current time #{now.strftime('%H:%M')} != schedule time #{format('%02d:%02d', schedule_hour, schedule_minute)}, skipping"
         return
       end
 
@@ -155,7 +155,7 @@ module RedmineReminder
           all_user_tasks[user_id].concat(tasks)
         end
 
-        Rails.logger.info "RedmineReminder: Collected members from project #{project.name}"
+        Rails.logger.debug "RedmineReminder: Collected members from project #{project.name}"
       end
 
       # 按 issue_id 去重（同一用户可能通过不同项目/子项目获得重复任务）
