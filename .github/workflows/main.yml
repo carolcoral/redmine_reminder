@@ -33,6 +33,12 @@ jobs:
           # 切换到你需要同步的分支（例如 main）
           git checkout main
           # 将上游分支的变更合并到当前分支
-          git merge upstream/main
+          # 尝试普通合并，失败时再用 --allow-unrelated-histories
+          if git merge upstream/main; then
+            echo "合并成功"
+          else
+            echo "合并失败，尝试允许不相关历史..."
+            git merge upstream/main --allow-unrelated-histories --no-edit
+          fi
           # 将合并后的更新推送到你的远程仓库（origin）
           git push origin main
