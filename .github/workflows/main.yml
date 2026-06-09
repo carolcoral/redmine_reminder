@@ -1,0 +1,38 @@
+name: 同步CNB仓库
+
+on:
+  # 1. 自动定时同步，这里是每天UTC时间0点，可以根据需求改成任意cron表达式
+  schedule:
+    - cron: '0 */1 * * *'
+  # 2. 也支持在GitHub网页上点击按钮手动触发
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      # 第一步：检出目标仓库的代码
+      - uses: actions/checkout@v4
+        with:
+          # 使用我们配置好的 Token，以确保有推送权限
+          token: ${{ secrets.ACTIONS_TOKEN }}
+          # 要检出的分支，根据需要修改
+          ref: main
+
+      # 第二步：添加上游源并执行同步的核心逻辑
+      - name: 拉取上游变更并推送
+        run: |
+          # 配置 Git 用户信息（用于自动生成的提交）
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          # 添加上游仓库地址（需要修改为你自己的上游仓库URL）
+          # 如果要同步的是 fork 仓库，使用 'upstream' 是一个良好实践
+          git remote add upstream https://cnb.cool/xindu.site/redmine_reminder
+          # 抓取上游所有更新
+          git fetch upstream
+          # 切换到你需要同步的分支（例如 main）
+          git checkout main
+          # 将上游分支的变更合并到当前分支
+          git merge upstream/main
+          # 将合并后的更新推送到你的远程仓库（origin）
+          git push origin main
